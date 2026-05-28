@@ -1,0 +1,145 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:26:28
+ * @Description: 模块管理页面，展示模块列表、模块详情、添加/编辑模块等功能，提供模块的增删改查操作界面
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/module-manage.css">
+</head>
+<body>
+    <div class="page-content">
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-filters">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" class="form-control" id="filterModuleKeyword" style="width: 200px; max-width: 100%;">
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <div id="modulePaginationBar" class="pagination-bar"></div>
+                    <button class="btn btn-primary" id="addModuleBtn">
+                        <span>+</span>
+                        <span id="addModuleText">添加模块</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="moduleNameHeader">模块名称</th>
+                            <th id="moduleFirmwareCountHeader">固件数量</th>
+                            <th id="moduleCreatorHeader">创建人</th>
+                            <th id="moduleCreatedAtHeader">创建时间</th>
+                            <th id="moduleDescHeader">模块简介</th>
+                            <th id="moduleActionsHeader" style="text-align: right;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="moduleListTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模块模态框 -->
+    <div class="modal-overlay" id="moduleModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="moduleModalTitle">添加模块</h3>
+                <button class="modal-close" id="closeModuleModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="form-group">
+                    <label class="form-label required" for="modalModuleName" id="modalModuleNameLabel">模块名称</label>
+                    <input type="text" class="form-control" id="modalModuleName">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label required" for="modalModuleDescription" id="modalModuleDescLabel">模块简介</label>
+                    <textarea class="form-control" id="modalModuleDescription" rows="3"></textarea>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelModuleBtn">取消</button>
+                <button class="btn btn-primary" id="saveModuleBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模块详情模态框 -->
+    <div class="modal-overlay" id="moduleDetailModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="moduleDetailTitle">模块详情</h3>
+                <button class="modal-close" id="closeModuleDetailModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="detail-list">
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailModuleNameLabel">模块名称</div>
+                        <div class="detail-value" id="detailModuleName"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailModuleFirmwareLabel">固件数量</div>
+                        <div class="detail-value" id="detailModuleFirmwareCount"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailModuleCreatorLabel">创建人</div>
+                        <div class="detail-value" id="detailModuleCreator"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailModuleCreatedAtLabel">创建时间</div>
+                        <div class="detail-value" id="detailModuleCreatedAt"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailModuleDescLabel">模块简介</div>
+                        <div class="detail-value" id="detailModuleDesc" style="white-space:pre-wrap;"></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelModuleDetailBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal-overlay" id="confirmModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmModalTitle">确认删除</h3>
+                <button class="modal-close" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">您确定要删除这个模块吗？此操作不可撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelConfirmBtn">取消</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/language.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/module-manage.js"></script>
+</body>
+</html>

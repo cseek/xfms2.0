@@ -1,0 +1,30 @@
+[Unit]
+Description=X Firmware Management System
+Documentation=https://github.com/aurson/xfms
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=xfms
+Group=xfms
+WorkingDirectory=/opt/xfms
+ExecStart=/usr/bin/node /opt/xfms/server/app.js
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=xfms
+
+# 环境变量（按需修改）
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+# 安全加固
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/xfms/uploads /opt/xfms/database
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,166 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:26:51
+ * @Description: 发布固件页面，提供一个表单界面让用户输入固件的基本信息、上传固件文件，并提交发布请求，同时展示一些发布相关的提示和建议
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/release-firmware.css">
+</head>
+
+<body>
+    <div class="page-content">
+        <div class="card">
+            <div class="release-wrapper">
+            <!-- 左侧：发布表单 -->
+            <div class="release-main">
+                <form class="form-container" id="releaseFirmwareForm">
+                    <!-- 基本信息部分 -->
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label required" for="releaseFirmwareModule"
+                                        id="releaseFirmwareModuleLabel">所属模块</label>
+                                    <select class="form-control" id="releaseFirmwareModule" required>
+                                        <option value="">请选择模块</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label required" for="releaseFirmwareProject"
+                                        id="releaseFirmwareProjectLabel">所属项目</label>
+                                    <select class="form-control" id="releaseFirmwareProject" required>
+                                        <option value="">请选择项目</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label required" for="releaseFirmwareVersion"
+                                        id="releaseFirmwareVersionLabel">固件版本</label>
+                                    <input type="text" class="form-control" id="releaseFirmwareVersion"
+                                        placeholder="例如: V1.0.0 或 V1.0.0.1" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label class="form-label required" for="releaseFirmwareDescription"
+                                        id="releaseFirmwareDescriptionLabel">固件描述</label>
+                                    <textarea class="form-control" id="releaseFirmwareDescription"
+                                        placeholder="描述固件功能和更新内容" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件上传部分 -->
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label required" id="formUploadTitle">固件文件</label>
+
+                            <div class="upload-area" id="fileUploadArea">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <div class="upload-text" id="fileUploadDragText">拖拽文件到此处或点击选择</div>
+                            <div class="upload-hint" id="fileUploadText">支持任何格式的文件，建议不超过100MB</div>
+                            <input type="file" id="firmwareFile" style="display: none;">
+                        </div>
+                        </div>
+
+                        <div id="fileInfo" class="file-info" style="display: none;">
+                            <div class="file-info-item">
+                                <div class="file-info-icon">📄</div>
+                                <div class="file-info-content">
+                                    <p id="selectedFileName" class="file-info-name"></p>
+                                    <p id="selectedFileSize" class="file-info-size"></p>
+                                </div>
+                                <button class="btn-icon" id="clearFileBtn" type="button" title="清除"
+                                    style="margin-left: auto;">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 表单按钮 -->
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" id="resetBtn" type="reset">重置</button>
+                        <button class="btn btn-primary" id="publishBtn" type="submit">发布</button>
+                    </div>
+                </form>
+
+                <!-- 上传进度遮层 -->
+                    <!-- 上传进度浮动提示 -->
+                    <div id="uploadProgressToast" style="display:none; position:fixed; bottom:1.5rem; right:1.5rem; background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.13); padding:0.75rem 1.125rem; align-items:center; gap:0.75rem; z-index:9999; min-width:200px;">
+                        <svg viewBox="0 0 44 44" width="40" height="40" style="transform:rotate(-90deg); flex-shrink:0;">
+                            <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="3.5"/>
+                            <circle id="uploadRingBar" cx="22" cy="22" r="18" fill="none"
+                                stroke="var(--primary-color,#2563eb)" stroke-width="3.5"
+                                stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1"
+                                style="transition:stroke-dashoffset 0.25s ease;"/>
+                        </svg>
+                        <div style="display:flex; flex-direction:column; gap:0.2rem;">
+                            <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);"><span id="uploadProgressTitle">正在上传...</span></span>
+                            <span style="font-size:0.75rem; color:var(--text-secondary);" id="uploadProgressSub"></span>
+                            <div style="display:flex; gap:0.4rem; margin-top:0.2rem;">
+                                <button id="uploadCancelBtn" type="button" style="border:1px solid #fecaca; color:#b91c1c; background:#fef2f2; border-radius:8px; padding:0.1rem 0.5rem; font-size:0.72rem; cursor:pointer;">取消</button>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <!-- 右侧：温馨提示 -->
+            <div class="tips-card release-sidebar">
+                <br>
+                <div class="card-header">
+                    <div class="card-title" id="tipsTitle">温馨提示</div>
+                </div>
+
+                <div class="tips-content">
+                    <div class="tips-section">
+                        <ul class="tips-list">
+                            <li id="tipsFirmwareName">如果没有匹配的模块或项目，请联系管理员添加</li>
+                            <li id="tipsVersion">版本号遵循 V主版本.次版本.修订版本（可选.构建号）格式</li>
+                            <li id="tipsDescription">完整的固件描述有助于用户了解更新内容</li>
+                            <li id="tipsFileSize">文件大小不能超过系统设置里的最大文件大小</li>
+                            <li id="tipsFileFormat">支持所有常见的压缩和固件格式</li>
+                            <li id="tipsFileSecurity">上传前请确保文件的完整性和安全性</li>
+                        </ul>
+                    </div>
+
+                    <!-- 发布建议区已移除 -->
+                </div>
+            </div>
+            </div><!-- end release-wrapper -->
+        </div><!-- end card -->
+    </div><!-- end page-content -->
+
+    <script src="../js/language.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/release-firmware.js"></script>
+</body>
+
+</html>

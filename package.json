@@ -1,0 +1,38 @@
+{
+  "name": "firmware-management-system",
+  "version": "2.0.0",
+  "description": "A modular firmware management system",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "node server/app.js",
+    "init-db": "node server/init-db.js",
+    "dev": "nodemon server/app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "fs-extra": "^11.1.1",
+    "multer": "^2.0.1",
+    "nodemailer": "^8.0.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "overrides": {
+    "tar": "^7.5.7",
+    "node-gyp": {
+      "tar": "^7.5.7"
+    }
+  },
+  "keywords": [
+    "firmware",
+    "management",
+    "nodejs"
+  ],
+  "author": "Aurson",
+  "license": "Apache-2.0"
+}

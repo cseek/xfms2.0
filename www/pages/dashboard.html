@@ -1,0 +1,95 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:10:40
+ * @Description: 仪表盘页面，展示系统的整体统计数据、固件状态分布图表、最近活动日志等信息，提供系统概览和快速访问入口
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div class="page-content">
+        
+        <div class="card1">
+            <div class="stats-grid">
+                <div class="stat-card stat-primary">
+                    <div class="stat-value" id="projectsCount">0</div>
+                    <div class="stat-label" id="projectsCountLabel">项目总数</div>
+                </div>
+                <div class="stat-card stat-success">
+                    <div class="stat-value" id="modulesCount">0</div>
+                    <div class="stat-label" id="modulesCountLabel">模块总数</div>
+                </div>
+                <div class="stat-card stat-purple">
+                    <div class="stat-value" id="firmwareCount">0</div>
+                    <div class="stat-label" id="firmwareCountLabel">固件总数</div>
+                </div>
+                <div class="stat-card stat-warning">
+                    <div class="stat-value" id="activeFirmwareCount">0</div>
+                    <div class="stat-label" id="activeFirmwareCountLabel">激活总数</div>
+                </div>
+                <div class="stat-card stat-gray">
+                    <div class="stat-value" id="usersCount">0</div>
+                    <div class="stat-label" id="usersTotalLabel">用户总数</div>
+                </div>
+                <div class="stat-card stat-teal">
+                    <div class="stat-value" id="loginCount">0</div>
+                    <div class="stat-label" id="visitCountLabel">访问总数</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card2">
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title" id="chartPendingTitle">待测试</div>
+                    <canvas id="chartPending" width="340" height="260"></canvas>
+                    <div class="chart-legend" id="legendPending"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title" id="chartTestedTitle">已测试</div>
+                    <canvas id="chartTested" width="340" height="260"></canvas>
+                    <div class="chart-legend" id="legendTested"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title" id="chartActivatedTitle">已激活</div>
+                    <canvas id="chartActivated" width="340" height="260"></canvas>
+                    <div class="chart-legend" id="legendActivated"></div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title" id="chartDeprecatedTitle">已废弃</div>
+                    <canvas id="chartDeprecated" width="340" height="260"></canvas>
+                    <div class="chart-legend" id="legendDeprecated"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card3">
+            <!-- 活动日志卡片：最近操作（上传/下载/修改/删除） -->
+            <div class="activity-card" id="activityCard">
+                <div class="activity-list" id="activityList">
+                    <!-- 动态填充：每行格式：行为（左） 谁（中） 时间（右） -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../js/language.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

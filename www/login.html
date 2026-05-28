@@ -1,0 +1,101 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:39:31
+ * @Description: 登录页面，提供用户输入用户名和密码的界面，并处理登录请求，同时支持语言切换功能，展示系统Logo和版本信息
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>X-固件管理系统 - 登录 | 现代科技风</title>
+    <!-- 独立样式表：已完全重构样式，不依赖外部common.css，无新增JS -->
+    <link rel="stylesheet" href="login.css">
+    <style>
+        /* 备选内嵌样式确保变量可用 —— 实际以外部CSS为准，此块仅为开发预览可靠；最终全部由login.css接管 */
+    </style>
+</head>
+<body>
+    <!-- 语言切换 -->
+    <div class="login-lang-toggle" id="loginLangToggle">
+        <span class="login-lang-opt active" data-lang="zh">中文</span>
+        <span class="login-lang-sep">|</span>
+        <span class="login-lang-opt" data-lang="en">English</span>
+    </div>
+    
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Logo 和标题 -->
+            <div class="login-header">
+                <div class="logo-container">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>X-固件管理系统</h1>
+                <p>X Firmware Management System</p>
+            </div>
+            
+            <!-- 登录表单 (结构不变，交互完全保留) -->
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" required placeholder="请输入用户名 / 邮箱" autocomplete="username">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" name="password" required placeholder="请输入登录密码" autocomplete="current-password">
+                        <button type="button" class="toggle-password" aria-label="显示密码">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none">
+                                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="forgot-password-container">
+                    <a href="#" id="registerLink" class="register-link">注册用户 →</a>
+                    <a href="#" id="forgotPasswordLink" class="forgot-password-link">忘记密码?</a>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span class="btn-text">登 录</span>
+                    <span class="btn-loader"></span>
+                </button>
+            </form>
+            
+            <div class="login-footer-note">
+                <span class="secure-badge">V 2.0.0</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 原有JS逻辑完整保留 (无任何新增) -->
+    <script src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+:root {
+    --primary: #4d6bfe;
+    --primary-hover: #3755e4;
+    --bg: linear-gradient(135deg, #1a0030 0%, #0d001a 50%, #000000 100%);
+    --card-bg: #ffffff;
+    --card-border: #e8eaef;
+    --input-bg: #f5f6fa;
+    --input-border: #dde0e8;
+    --input-focus: #4d6bfe;
+    --text-primary: #0f1117;
+    --text-secondary: #5a5f7d;
+    --text-muted: #9198b0;
+    --error-color: #ef4444;
+    --success-color: #10b981;
+    --radius: 10px;
+    --radius-card: 16px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.08);
+    --transition: all 0.18s ease;
+    /* 兼容旧变量名 */
+    --transition-smooth: var(--transition);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    background: var(--bg);
+    background-image: url('images/login-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    font-family: -apple-system, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* -------------------- 背景光晕（隐藏）-------------------- */
+.background-animation {
+    display: none;
+}
+
+.gradient-orb { display: none; }
+.orb-1, .orb-2, .orb-3, .orb-4 { display: none; }
+
+@keyframes floatOrb { 0% {} 100% {} }
+
+/* -------------------- 语言切换 -------------------- */
+.login-lang-toggle {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: transparent;
+    backdrop-filter: none;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 400;
+    transition: var(--transition);
+}
+.login-lang-toggle:hover {
+    border-color: transparent;
+    background: transparent;
+}
+.login-lang-opt {
+    cursor: pointer;
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+    transition: var(--transition);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    letter-spacing: 0;
+}
+.login-lang-opt.active {
+    color: var(--primary);
+    font-weight: 600;
+    background: none;
+    box-shadow: none;
+}
+.login-lang-opt:hover {
+    color: var(--primary);
+    background: rgba(77,107,254,0.08);
+}
+.login-lang-sep {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+/* -------------------- 登录容器 & 卡片 -------------------- */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+    padding: 1.5rem;
+}
+
+.login-card {
+    width: 400px;
+    max-width: 100%;
+    background: var(--card-bg);
+    backdrop-filter: none;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-card);
+    padding: 2.5rem 2.25rem 2rem;
+    transition: none;
+    position: relative;
+    overflow: hidden;
+}
+.login-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-card);
+}
+
+/* 卡片装饰层（隐藏）*/
+.card-glow {
+    display: none;
+}
+
+/* -------------------- Logo 与标题区域 -------------------- */
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.logo-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #4d6bfe, #7c5af0);
+    border-radius: 16px;
+    margin-bottom: 0.875rem;
+    box-shadow: 0 4px 14px rgba(77,107,254,0.35);
+    transition: var(--transition);
+}
+.logo-icon {
+    width: 30px;
+    height: 30px;
+    color: #ffffff;
+    filter: none;
+}
+.login-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: var(--text-primary);
+    letter-spacing: -0.2px;
+    margin-top: 0.125rem;
+}
+.login-header p {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    margin-top: 0.25rem;
+    opacity: 1;
+}
+
+/* -------------------- 表单样式 -------------------- */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-top: 0;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: 0;
+    margin-left: 0;
+}
+/* 隐藏 label 内的 SVG 图标，仅显示 JS 注入的文本 */
+.input-icon {
+    display: none;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    border-radius: var(--radius);
+    padding: 0.65rem 0.875rem;
+    transition: var(--transition);
+    backdrop-filter: none;
+}
+.input-wrapper:focus-within {
+    border-color: var(--input-focus);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(77,107,254,0.12);
+}
+.form-group.error .input-wrapper {
+    border-color: var(--error-color);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+}
+.form-group.success .input-wrapper {
+    border-color: var(--success-color);
+}
+
+.input-wrapper input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    color: var(--text-primary);
+    padding: 0;
+}
+.input-wrapper input::placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.875rem;
+}
+
+/* 显示密码按钮 */
+.toggle-password {
+    background: transparent;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 4px;
+    transition: var(--transition);
+}
+.toggle-password:hover {
+    color: var(--text-secondary);
+    background: transparent;
+}
+.eye-icon {
+    width: 17px;
+    height: 17px;
+}
+
+/* 辅助功能区 */
+.forgot-password-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 0.25rem;
+    font-size: 0.875rem;
+}
+.register-link, .forgot-password-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: var(--primary);
+    transition: var(--transition);
+    position: static;
+}
+.register-link:hover, .forgot-password-link:hover {
+    color: var(--primary-hover);
+    -webkit-text-fill-color: var(--primary-hover);
+    text-decoration: underline;
+    filter: none;
+    transform: none;
+}
+.register-link::after, .forgot-password-link::after { display: none; }
+.forgot-password-link {
+    color: var(--text-secondary);
+    -webkit-text-fill-color: var(--text-secondary);
+    font-weight: 400;
+}
+.forgot-password-link:hover {
+    color: var(--primary);
+    -webkit-text-fill-color: var(--primary);
+}
+
+/* -------------------- 主登录按钮 -------------------- */
+.login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, #4d6bfe 0%, #7c5af0 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 10px rgba(77,107,254,0.3);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    margin-top: 0.125rem;
+}
+.login-btn::before {
+    display: none;
+}
+.login-btn:hover {
+    background: linear-gradient(90deg, #3755e4 0%, #6a47d4 100%);
+    box-shadow: 0 4px 18px rgba(77,107,254,0.42);
+    transform: translateY(-1px);
+}
+.login-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(77,107,254,0.25);
+    transition: 0.05s;
+}
+.btn-loader {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 2px solid rgba(255,255,255,0.5);
+    border-top-color: white;
+    animation: spinLoader 0.8s linear infinite;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.1s;
+    position: absolute;
+}
+/* 保留加载动画备用 (JS可控制显示，无JS时不可见但样式完美) */
+.login-btn.loading .btn-loader {
+    opacity: 1;
+    visibility: visible;
+}
+@keyframes spinLoader {
+    to { transform: rotate(360deg); }
+}
+
+/* -------------------- 页脚 -------------------- */
+.login-footer-note {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+.secure-badge {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    backdrop-filter: none;
+    letter-spacing: 0.3px;
+    border: none;
+}
+
+/* -------------------- JS 动态消息提示 -------------------- */
+.message {
+    position: fixed;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.7rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    z-index: 1000;
+    white-space: nowrap;
+    animation: messageSlideIn 0.3s ease;
+}
+.message.info  { background: #fff; color: var(--text-primary); border: 1px solid var(--card-border); }
+.message.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.message.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+@keyframes messageSlideIn  { from { opacity: 0; top: 0.5rem; } to { opacity: 1; top: 1.5rem; } }
+@keyframes messageSlideOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* -------------------- 响应式 & 移动端优化 -------------------- */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 2rem 1.5rem 1.75rem;
+        border-radius: 12px;
+    }
+    .logo-container {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+    }
+    .logo-icon {
+        width: 26px;
+        height: 26px;
+    }
+    .login-header h1 {
+        font-size: 1.35rem;
+    }
+    .login-lang-toggle {
+        top: 14px;
+        right: 16px;
+        font-size: 0.8rem;
+    }
+    .input-wrapper {
+        padding: 0.6rem 0.8rem;
+    }
+    .login-btn {
+        padding: 0.7rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .register-link, .forgot-password-link {
+        font-size: 0.8rem;
+    }
+}
+
+/* -------------------- 自动填充样式覆盖 -------------------- */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 100px var(--input-bg) inset;
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
+    transition: none;
+}

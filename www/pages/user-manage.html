@@ -1,0 +1,168 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:21:27
+ * @Description: 用户管理页面，展示用户列表、用户详情、添加/编辑用户等功能，提供用户的增删改查操作界面
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/user-manage.css">
+</head>
+<body>
+    <div class="page-content">
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-filters">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" class="form-control" id="filterUserKeyword" autocomplete="off" style="width: 200px; max-width: 100%;">
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <div id="userPaginationBar" class="pagination-bar"></div>
+                    <button class="btn btn-primary" id="addUserBtn">
+                        <span>+</span>
+                        <span id="addUserText">添加用户</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="userNameHeader">用户名</th>
+                            <th id="userRoleHeader">角色</th>
+                            <th id="userEmailHeader">电子邮箱</th>
+                            <th id="userJoinDateHeader">创建时间</th>
+                            <th id="userBioHeader">用户简介</th>
+                            <th id="userActionsHeader" style="text-align: right;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userListTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户模态框 -->
+    <div class="modal-overlay" id="userModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="userModalTitle">添加用户</h3>
+                <button class="modal-close" id="closeUserModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="form-group">
+                    <label class="form-label required" for="modalUserName" id="modalUserNameLabel">用户名</label>
+                    <input type="text" class="form-control" id="modalUserName" autocomplete="off">
+                </div>
+                <div class="form-group" id="modalUserPasswordGroup">
+                    <label class="form-label required" for="modalUserPassword" id="modalUserPasswordLabel">用户密码</label>
+                    <input type="password" class="form-control" id="modalUserPassword" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label required" for="modalUserEmail" id="modalUserEmailLabel">电子邮箱</label>
+                    <input type="email" class="form-control" id="modalUserEmail">
+                </div>
+                <div class="form-group">
+                    <label class="form-label required" for="modalUserRole" id="modalUserRoleLabel">用户角色</label>
+                    <select class="form-control" id="modalUserRole">
+                        <option value="" id="selectUserRoleOption">请选择角色</option>
+                        <option value="管理员" id="roleAdmin">管理员</option>
+                        <option value="开发者" id="roleDeveloper">开发者</option>
+                        <option value="测试员" id="roleTester">测试员</option>
+                        <option value="普通用户" id="roleUser">普通用户</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label" for="modalUserBio"><span id="modalUserBioLabel">简介</span> <span id="modalUserBioOptional" style="color: var(--text-secondary); font-weight: normal; font-size: 0.8em;">（选填）</span></label>
+                    <textarea class="form-control" id="modalUserBio" rows="3"></textarea>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelUserBtn">取消</button>
+                <button class="btn btn-primary" id="saveUserBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户详情模态框 -->
+    <div class="modal-overlay" id="userDetailModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="userDetailTitle">用户详情</h3>
+                <button class="modal-close" id="closeUserDetailModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="detail-list">
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailUserNameLabel">用户名</div>
+                        <div class="detail-value" id="detailUserName"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailUserPasswordLabel">用户密码</div>
+                        <div class="detail-value"><span class="password-mask" id="detailUserPassword" title="悬停查看密码"></span></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailUserRoleLabel">角色</div>
+                        <div class="detail-value" id="detailUserRole"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailUserEmailLabel">电子邮箱</div>
+                        <div class="detail-value" id="detailUserEmail"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailUserJoinDateLabel">创建时间</div>
+                        <div class="detail-value" id="detailUserJoinDate"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailUserBioLabel">用户简介</div>
+                        <div class="detail-value" id="detailUserBio" style="white-space:pre-wrap;"></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelUserDetailBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal-overlay" id="confirmModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmModalTitle">确认删除</h3>
+                <button class="modal-close" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">您确定要删除这个用户吗？此操作不可撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelConfirmBtn">取消</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/language.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/user-manage.js"></script>
+</body>
+</html>

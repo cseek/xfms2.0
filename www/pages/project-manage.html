@@ -1,0 +1,145 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:26:37
+ * @Description: 项目管理页面，展示项目列表、项目详情、添加/编辑项目等功能，提供项目的增删改查操作界面
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/project-manage.css">
+</head>
+<body>
+    <div class="page-content">
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-filters">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" class="form-control" id="filterProjectKeyword" style="width: 200px; max-width: 100%;">
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <div id="projectPaginationBar" class="pagination-bar"></div>
+                    <button class="btn btn-primary" id="addProjectBtn">
+                        <span>+</span>
+                        <span id="addProjectText">添加项目</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="projectNameHeader">项目名称</th>
+                            <th id="projectModuleCountHeader">模块数量</th>
+                            <th id="projectCreatorHeader">创建人</th>
+                            <th id="projectDateHeader">创建时间</th>
+                            <th id="projectDescHeader">项目简介</th>
+                            <th id="projectActionsHeader" style="text-align: right;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectListTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目模态框 -->
+    <div class="modal-overlay" id="projectModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="projectModalTitle">添加项目</h3>
+                <button class="modal-close" id="closeProjectModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="form-group">
+                    <label class="form-label required" for="modalProjectName" id="modalProjectNameLabel">项目名称</label>
+                    <input type="text" class="form-control" id="modalProjectName">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label required" for="modalProjectDescription" id="modalProjectDescLabel">项目简介</label>
+                    <textarea class="form-control" id="modalProjectDescription" rows="3"></textarea>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelProjectBtn">取消</button>
+                <button class="btn btn-primary" id="saveProjectBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目详情模态框 -->
+    <div class="modal-overlay" id="projectDetailModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="projectDetailTitle">项目详情</h3>
+                <button class="modal-close" id="closeProjectDetailModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="detail-list">
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailProjectNameLabel">项目名称</div>
+                        <div class="detail-value" id="detailProjectName"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailProjectModuleCountLabel">模块数量</div>
+                        <div class="detail-value" id="detailProjectModuleCount"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailProjectCreatorLabel">创建人</div>
+                        <div class="detail-value" id="detailProjectCreator"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailProjectCreatedAtLabel">创建时间</div>
+                        <div class="detail-value" id="detailProjectCreatedAt"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailProjectDescLabel">项目简介</div>
+                        <div class="detail-value" id="detailProjectDesc" style="white-space:pre-wrap;"></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelProjectDetailBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal-overlay" id="confirmModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmModalTitle">确认删除</h3>
+                <button class="modal-close" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">您确定要删除这个项目吗？此操作不可撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelConfirmBtn">取消</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/language.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/project-manage.js"></script>
+</body>
+</html>

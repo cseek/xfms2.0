@@ -1,0 +1,204 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-15 03:06:59
+ * @Description: 首页，展示系统概览信息、快速入口等内容，提供用户登录后的欢迎界面和导航中心
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-固件管理系统</title>
+    <link rel="stylesheet" href="css/common.css">
+</head>
+
+<body>
+    <!-- 移动端遮罩 -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- 主体布局 -->
+    <div class="main-container">
+        <!-- 侧边栏 -->
+        <nav class="sidebar" id="sidebar">
+            <!-- 侧边栏顶部 - Logo -->
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="sidebar-logo-icon" id="sidebarLogoIcon" style="cursor:pointer;" title="返回主页">
+                        <svg viewBox="0 0 24 24" fill="none" style="width:1.4rem;height:1.4rem;">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="sidebar-logo-text-wrap">
+                        <div class="sidebar-logo-text" id="sidebarLogoText">X-固件管理系统</div>
+                        <div class="sidebar-logo-sub"><em>X Firmware Management System</em></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 侧边栏中间 - 导航菜单 -->
+            <div class="sidebar-body">
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#dashboard" class="nav-link active" data-page="dashboard" data-title="系统主页"
+                            data-title-en="Dashboard">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text" id="navDashboard">系统主页</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#release-firmware" class="nav-link" data-page="release-firmware" data-title="发布固件"
+                            data-title-en="Release Firmware">
+                            <span class="nav-icon">🚀</span>
+                            <span class="nav-text" id="navReleaseFirmware">发布固件</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#firmware-list" class="nav-link" data-page="firmware-list" data-title="固件列表"
+                            data-title-en="Firmware List">
+                            <span class="nav-icon">💾</span>
+                            <span class="nav-text" id="navFirmwareList">固件列表</span>
+                        </a>
+                    </li>
+                    <li class="nav-item nav-parent">
+                        <a href="javascript:void(0)" class="nav-link nav-toggle" data-submenu="listManagement">
+                            <span class="nav-icon">🖥️</span>
+                            <span class="nav-text" id="navListManagement">系统管理</span>
+                            <span class="nav-arrow">▶</span>
+                        </a>
+                        <ul class="nav-submenu" id="listManagement">
+                            <li class="nav-item">
+                                <a href="#module-manage" class="nav-link" data-page="module-manage" data-title="模块管理"
+                                    data-title-en="Module Management">
+                                    <span class="nav-icon">🧩</span>
+                                    <span class="nav-text" id="navModuleList">模块列表</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#project-manage" class="nav-link" data-page="project-manage" data-title="项目管理"
+                                    data-title-en="Project Management">
+                                    <span class="nav-icon">📁</span>
+                                    <span class="nav-text" id="navProjectList">项目列表</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#user-manage" class="nav-link" data-page="user-manage" data-title="用户管理"
+                                    data-title-en="User Management">
+                                    <span class="nav-icon">👥</span>
+                                    <span class="nav-text" id="navUserList">用户列表</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#settings" class="nav-link" data-page="settings" data-title="系统设置"
+                            data-title-en="System Settings">
+                            <span class="nav-icon">⚙️</span>
+                            <span class="nav-text" id="navSettings">系统设置</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 侧边栏底部 - 语言切换 -->
+            <div class="sidebar-footer">
+                <div class="sidebar-lang-toggle" id="sidebarLangToggle">
+                    <span class="sidebar-lang-opt" data-lang="zh" id="langOptZh">中文</span>
+                    <span class="sidebar-lang-sep">|</span>
+                    <span class="sidebar-lang-opt" data-lang="en" id="langOptEn">English</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 右侧内容区域 -->
+        <div class="content-wrapper">
+            <!-- 头部 -->
+            <header>
+                <div class="header-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+                </div>
+
+                <div class="header-center">
+                    <h1 class="page-title" id="pageTitle">系统主页</h1>
+                </div>
+
+                <div class="header-right">
+                    <div class="user-info" id="userDropdownTrigger">
+                        <div class="user-avatar">A</div>
+                        <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1">
+                            <span class="user-name" id="userName">管理员</span>
+                            <span class="user-role" id="userRole" style="font-size:0.75rem;color:var(--text-secondary)">管理员</span>
+                        </div>
+                        <span class="user-dropdown-arrow">▾</span>
+                    </div>
+                    <div class="user-dropdown" id="userDropdownMenu">
+                        <div class="user-dropdown-item" id="changePasswordBtn">
+                            <span id="dropdownChangePassword">修改密码</span>
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <div class="user-dropdown-item user-dropdown-item-danger" id="logoutBtn">
+                            <span id="dropdownLogout">退出登录</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 修改密码弹窗 -->
+            <div class="modal-overlay" id="changePasswordModal">
+                <div class="modal" style="max-width:420px">
+                    <div class="modal-header">
+                        <div style="width:2rem;flex-shrink:0"></div>
+                        <h3 class="modal-title" id="changePasswordModalTitle" style="flex:1;text-align:center">修改密码</h3>
+                        <button class="modal-close" id="closeChangePasswordModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-scroll-box">
+                        <div class="form-group">
+                            <label class="form-label required" id="labelCpOldPassword" for="cpOldPassword">原密码</label>
+                            <input type="password" class="form-control" id="cpOldPassword" autocomplete="current-password" placeholder="输入原密码">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required" id="labelCpNewPassword" for="cpNewPassword">新密码</label>
+                            <input type="password" class="form-control" id="cpNewPassword" autocomplete="new-password" placeholder="输入新密码">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label class="form-label required" id="labelCpConfirmPassword" for="cpConfirmPassword">确认新密码</label>
+                            <input type="password" class="form-control" id="cpConfirmPassword" autocomplete="new-password" placeholder="再次输入新密码">
+                        </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="cancelChangePasswordBtn">取消</button>
+                        <button class="btn btn-primary" id="saveChangePasswordBtn">保存</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主内容区域 - 使用 iframe -->
+            <main class="content-area" id="contentArea">
+                <iframe id="contentFrame" src="pages/dashboard.html" frameborder="0"></iframe>
+            </main>
+
+            <!-- 页脚 -->
+            <footer>
+                <div id="footerText">© 2026 X-固件管理系统 | V2.0.0</div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="js/language.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/api.js"></script>
+    <script src="index.js"></script>
+</body>
+
+</html>

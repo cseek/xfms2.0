@@ -1,0 +1,213 @@
+<!--
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ *      
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-04-10 00:45:34
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:26:14
+ * @Description: 固件列表页面，展示所有已发布的固件信息，提供搜索、过滤、分页等功能，并允许用户查看固件详情、编辑或删除固件，同时提供一个按钮跳转到发布固件页面
+ * Copyright (c) 2025 by Aurson, All Rights Reserved.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/firmware-list.css">
+</head>
+<body>
+    <div class="page-content">
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="card-filters">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" class="form-control" id="filterKeyword" style="width: 200px; max-width: 100%;" placeholder="输入关键词">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <select class="form-control" id="filterProject" style="width: 200px; max-width: 100%;">
+                            <option value="">所有项目</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <select class="form-control" id="filterModule" style="width: 200px; max-width: 100%;">
+                            <option value="">所有模块</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <select class="form-control" id="filterStatus" style="width: 200px; max-width: 100%;">
+                            <option value="" id="filterStatusAll">所有状态</option>
+                            <option value="pending" id="filterStatusPending">待测试</option>
+                            <option value="tested" id="filterStatusTested">已测试</option>
+                            <option value="activated" id="filterStatusActivated">已激活</option>
+                            <option value="deprecated" id="filterStatusDeprecated">已废弃</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <div id="paginationBar" class="pagination-bar"></div>
+                    <button class="btn btn-primary" id="goReleaseFirmwareBtn">
+                        <span>+</span>
+                        <span id="goReleaseFirmwareText">发布固件</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="firmwareVersionHeader">固件版本</th>
+                            <th id="firmwareModuleHeader">所属模块</th>
+                            <th id="firmwareProjectHeader">所属项目</th>
+                            <th id="firmwareStatusHeader">固件状态</th>
+                            <th id="firmwareFileSizeHeader">文件大小</th>
+                            <th id="firmwareFileNameHeader">文件名称</th>
+                            <th id="firmwareDateHeader">发布时间</th>
+                            <th id="firmwareDescHeader">固件描述</th>
+                            <th id="firmwareActionsHeader" style="text-align: right;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="firmwareListTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑固件模态框 -->
+    <div class="modal-overlay" id="firmwareModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="firmwareModalTitle">编辑固件</h3>
+                <button class="modal-close" id="closeFirmwareModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="form-group">
+                    <label class="form-label required" for="modalFirmwareModule" id="modalFirmwareModuleLabel">所属模块</label>
+                    <select class="form-control" id="modalFirmwareModule">
+                        <option value="">请选择模块</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required" for="modalFirmwareProject" id="modalFirmwareProjectLabel">所属项目</label>
+                    <select class="form-control" id="modalFirmwareProject">
+                        <option value="">请选择项目</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required" for="modalFirmwareVersion" id="modalFirmwareVersionLabel">固件版本</label>
+                    <input type="text" class="form-control" id="modalFirmwareVersion" placeholder="例如: V1.0.0.1">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label required" for="modalFirmwareDescription" id="modalFirmwareDescriptionLabel">固件描述</label>
+                    <textarea class="form-control" id="modalFirmwareDescription" rows="3" placeholder="输入固件描述" style="resize:vertical;"></textarea>
+                </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelFirmwareBtn">取消</button>
+                <button class="btn btn-primary" id="saveFirmwareBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="firmwareDetailModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="firmwareDetailTitle">固件详情</h3>
+                <button class="modal-close" id="closeFirmwareDetailModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-scroll-box">
+                <div class="detail-list">
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelVersion">固件版本</div>
+                        <div class="detail-value" id="detailFirmwareVersion"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelProject">所属项目</div>
+                        <div class="detail-value" id="detailFirmwareProject"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelModule">所属模块</div>
+                        <div class="detail-value" id="detailFirmwareModule"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelFileName">文件名称</div>
+                        <div class="detail-value" id="detailFirmwareFileName" style="word-break:break-all;"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelSize">文件大小</div>
+                        <div class="detail-value" id="detailFirmwareSize"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelMd5">MD5校验</div>
+                        <div class="detail-value" id="detailFirmwareMd5" style="word-break:break-all;font-family:monospace;"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelDate">发布时间</div>
+                        <div class="detail-value" id="detailFirmwareDate"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelStatus">固件状态</div>
+                        <div class="detail-value" id="detailFirmwareStatus"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label" id="detailLabelDesc">固件描述</div>
+                        <div class="detail-value" id="detailFirmwareDesc" style="white-space:pre-wrap;"></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelFirmwareDetailBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div class="modal-overlay" id="confirmModal" hidden>
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmModalTitle">确认删除</h3>
+                <button class="modal-close" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">您确定要删除这个固件吗？此操作不可撤销。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelConfirmBtn">取消</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 下载进度浮动提示 -->
+    <div id="downloadProgressToast" style="display:none; position:fixed; bottom:1.5rem; right:1.5rem; background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.13); padding:0.75rem 1.125rem; align-items:center; gap:0.75rem; z-index:9999; min-width:200px;">
+        <svg viewBox="0 0 44 44" width="40" height="40" style="transform:rotate(-90deg); flex-shrink:0;">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="3.5"/>
+            <circle id="downloadRingBar" cx="22" cy="22" r="18" fill="none"
+                stroke="var(--primary-color,#2563eb)" stroke-width="3.5"
+                stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1"
+                style="transition:stroke-dashoffset 0.25s ease;"/>
+        </svg>
+        <div style="display:flex; flex-direction:column; gap:0.2rem;">
+            <span style="font-size:0.85rem; font-weight:600; color:var(--text-primary);"><span id="downloadProgressTitle">正在下载...</span></span>
+            <span style="font-size:0.75rem; color:var(--text-secondary);" id="downloadProgressSub"></span>
+            <div style="display:flex; gap:0.4rem; margin-top:0.2rem;">
+                <button id="downloadCancelBtn" type="button" style="border:1px solid #fecaca; color:#b91c1c; background:#fef2f2; border-radius:8px; padding:0.1rem 0.5rem; font-size:0.72rem; cursor:pointer;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/language.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/firmware-list.js"></script>
+</body>
+</html>

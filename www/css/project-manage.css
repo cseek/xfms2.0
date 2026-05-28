@@ -1,0 +1,637 @@
+/*
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ * 
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-01-24 15:30:39
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:38:12
+ * @Description: 项目管理页面的样式文件，定义了项目列表、项目详情、编辑项目等组件的布局、颜色、字体等样式，确保页面在不同设备上的响应式设计和良好的用户体验
+ * Copyright (c) 2026 by Aurson, All Rights Reserved. 
+ */
+.card {
+    background-color: var(--card-color);
+    padding: 1.5rem;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.card-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary, #6b7280);
+    white-space: nowrap;
+}
+
+.btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius);
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+.btn-secondary {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: #e2e8f0;
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
+
+.btn-icon {
+    padding: 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-container {
+    overflow-x: hidden;
+    overflow-y: hidden;
+    flex: 1;
+    min-height: 0;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+thead {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    flex-shrink: 0;
+}
+
+tbody {
+    display: block;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+th {
+    background-color: var(--bg-color);
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+th:nth-child(1), td:nth-child(1) { width: 15%; }
+th:nth-child(2), td:nth-child(2) { width: 15%; }
+th:nth-child(3), td:nth-child(3) { width: 15%; }
+th:nth-child(4), td:nth-child(4) { width: 15%; }
+th:nth-child(5), td:nth-child(5) { width: 25%; }
+th:nth-child(6), td:nth-child(6) { width: 15%; }
+
+td {
+    padding: 0.65rem 1rem;
+    height: 27px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    min-width: 0;
+}
+
+/* 统一数据列溢出约束，避免任意列内容覆盖相邻列 */
+tbody td:not(.actions) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background-color: var(--bg-color);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background-color: rgba(156, 163, 175, 0.1);
+    color: #9ca3af;
+}
+
+.status-tested {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.status-activated {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.status-deprecated {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.actions {
+    white-space: nowrap;
+    vertical-align: middle;
+    text-align: right;
+    width: 1%;
+}
+
+.actions-inner {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+/* 禁用按钮样式（非管理员） */
+.actions-inner .btn[disabled],
+.actions-inner .btn.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--bg-color);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+/* 将操作列（详情/编辑/删除）按钮背景统一为编辑按钮样式 */
+.actions-inner .btn {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+.actions-inner .btn:hover:not(:disabled) {
+    background-color: #e2e8f0;
+}
+
+/* 操作列：删除按钮悬停为红色 */
+.actions-inner .btn.btn-danger:hover:not(:disabled) {
+    background-color: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+/* 即使按钮被禁用，也在悬停时显示红色（用于非管理员提示） */
+.actions-inner .btn.btn-disabled.btn-danger:hover,
+.actions-inner .btn[disabled].btn-danger:hover {
+    background-color: #dc2626;
+    color: white;
+    border-color: #dc2626;
+}
+
+/* 被禁用的编辑按钮在悬停时显示选中效果 */
+.actions-inner .btn.btn-disabled.btn-secondary:hover,
+.actions-inner .btn[disabled].btn-secondary:hover {
+    background-color: #e2e8f0;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    opacity: 0.85;
+}
+
+/* 模态框样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background-color: var(--card-color);
+    border-radius: var(--radius);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: translateY(20px);
+    transition: transform 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-overlay.active .modal {
+    transform: translateY(0);
+}
+
+.modal-header {
+    padding: 1.5rem 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-scroll-box {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    overflow-y: auto;
+    max-height: 350px;
+}
+
+.modal-footer {
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-label.required::after {
+    content: " *";
+    color: var(--danger-color);
+    font-weight: 700;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background-color: white;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+textarea.form-control {
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* ── 平板响应式（768px–1024px） ── */
+@media (max-width: 1024px) {
+    body { height: auto; overflow-y: auto; }
+    .card {
+        height: auto;
+        overflow: visible;
+    }
+    .table-container {
+        overflow-x: auto;
+        overflow-y: visible;
+        max-height: none;
+    }
+    .card-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    body { height: auto; overflow-y: auto; }
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .card-filters,
+    .card-actions {
+        width: 100%;
+    }
+
+    .card-filters .form-group {
+        width: 100%;
+    }
+
+    .card-filters .form-control {
+        width: 100% !important;
+    }
+
+    .card-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .card {
+        height: auto;
+        overflow: visible;
+        padding: 0.75rem;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        overflow-y: visible;
+        max-height: none;
+    }
+
+    table { display: table; min-width: 620px; }
+    thead { display: table-header-group; }
+    tbody { display: table-row-group; overflow-y: visible; max-height: none; }
+    tbody tr { display: table-row; }
+}
+
+@media (max-width: 600px), (max-width: 1024px) and (orientation: portrait) {
+    .table-container {
+        border: none;
+        overflow-x: visible;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    thead,
+    thead tr,
+    thead th {
+        display: none;
+    }
+
+    tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    tbody tr {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        background: var(--card-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    tbody tr:last-child {
+        margin-bottom: 0;
+    }
+
+    tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.45rem 0;
+        border-bottom: none;
+        height: auto;
+        color: var(--text-primary);
+        text-align: right;
+        width: 100% !important;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    tbody td:last-child {
+        border-bottom: none;
+    }
+
+    tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        text-align: left;
+        flex-shrink: 0;
+        margin-right: 0.75rem;
+    }
+
+    .actions {
+        width: 100%;
+        white-space: normal;
+    }
+
+    .actions-inner {
+        justify-content: flex-end;
+    }
+}
+
+/* 分页器 */
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+}
+
+.pagination-info {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-right: 0.5rem;
+    white-space: nowrap;
+}
+
+.pagination-btn {
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background-color: var(--card-color);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.detail-item {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    flex-shrink: 0;
+    width: 5em;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-align: right;
+}
+
+.detail-value {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+#projectDetailModal .modal-title {
+    flex: 1;
+    text-align: center;
+}
+
+#projectDetailModal .modal {
+    height: 520px;
+    max-height: 90vh;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#projectDetailModal .modal-header {
+    flex-shrink: 0;
+}
+
+#projectDetailModal .modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+#projectDetailModal .modal-footer {
+    flex-shrink: 0;
+}
+
+#projectModal .modal-title {
+    flex: 1;
+    text-align: center;
+}

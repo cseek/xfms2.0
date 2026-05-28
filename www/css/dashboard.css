@@ -1,0 +1,225 @@
+/*
+ *        ___ ___ _________ ___  ___ 
+ *       / _ `/ // / __(_-</ _ \/ _ \
+ *       \_,_/\_,_/_/ /___/\___/_//_/
+ * 
+ * @Author: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @Date: 2026-01-24 15:30:39
+ * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
+ * @LastEditTime: 2026-04-10 01:37:09
+ * @Description: 仪表盘页面的样式文件，定义了仪表盘中各个组件的布局、颜色、字体等样式，确保页面在不同设备上的响应式设计和良好的用户体验
+ * Copyright (c) 2026 by Aurson, All Rights Reserved. 
+ */
+.card1 {
+    background-color: var(--card-color);
+    padding: 1.5rem;
+}
+
+.card2 {
+    background-color: var(--card-color);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.card3 {
+    background-color: var(--card-color);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.chart-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.25rem 0.5rem 1rem;
+    gap: 0.5rem;
+    overflow: hidden;
+}
+
+.chart-card canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.chart-legend {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+}
+
+.stat-card {
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    border-radius: var(--radius);
+}
+
+.stat-primary {
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+}
+
+.stat-success {
+    background: linear-gradient(135deg, #10b981, #34d399);
+}
+
+.stat-purple {
+    background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+}
+
+.stat-warning {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+.stat-gray {
+    background: linear-gradient(135deg, #6b7280, #9ca3af);
+}
+
+.stat-teal {
+    background: linear-gradient(135deg, #06b6d4, #22d3ee);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background-color: rgba(156, 163, 175, 0.1);
+    color: #9ca3af;
+}
+
+.status-tested {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.status-activated {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.status-deprecated {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.status-border-pending {
+    border-left: 4px solid #9ca3af;
+}
+
+.status-border-tested {
+    border-left: 4px solid #2563eb;
+}
+
+.status-border-activated {
+    border-left: 4px solid #10b981;
+}
+
+.status-border-deprecated {
+    border-left: 4px solid #ef4444;
+}
+
+/* 活动日志 */
+.activity-card {
+    background-color: var(--card-color);
+}
+.activity-list {
+    --activity-row-height: 2.43rem;
+    max-height: calc(var(--activity-row-height) * 4);
+    overflow-y: auto;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+.activity-row {
+    display: block;
+    padding: 0.45rem 1.25rem;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    box-sizing: border-box;
+}
+.activity-row:last-child { border-bottom: none; }
+
+/* ── 平板响应式（768px–1024px） ── */
+@media (max-width: 1024px) {
+    body { height: auto; overflow-y: auto; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.85rem; }
+    .charts-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+    .chart-card canvas { width: 100%; height: auto; }
+}
+
+/* ── 移动端响应式 ── */
+@media (max-width: 768px) {
+    body { height: auto; overflow-y: auto; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .charts-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .card1, .card2, .card3 { padding: 1rem; }
+    .activity-row {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.82rem;
+    }
+    .activity-list { max-height: calc(2.5rem * 4); }
+}
+
+@media (max-width: 480px) {
+    body { height: auto; overflow-y: auto; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .card1, .card2, .card3 { padding: 0.75rem; }
+    .activity-row {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 0.1rem 0.5rem;
+    }
+    .activity-time { grid-column: 2; grid-row: 1; font-size: 0.72rem; }
+    .activity-action { grid-column: 1; grid-row: 1; }
+    .activity-actor { grid-column: 1; grid-row: 2; font-size: 0.78rem; }
+}
