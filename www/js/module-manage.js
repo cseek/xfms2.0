@@ -238,15 +238,6 @@
         fetchPage();
     }
 
-    if (window.XFMS_ROUTER_ACTIVE) {
-        window.XFMSPages = window.XFMSPages || {};
-        window.XFMSPages['module-manage'] = { init, onLanguageChange };
-    } else {
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'languageChange') {
-                onLanguageChange(event.data.lang);
-            }
-        });
-        document.addEventListener('DOMContentLoaded', init);
-    }
+    window.XFMSPages = window.XFMSPages || {};
+    window.XFMSPages['module-manage'] = { init, onLanguageChange };
 })();

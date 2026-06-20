@@ -14,11 +14,11 @@
 const API = (() => {
     const BASE = '';   // 与后端同源，端口由 express 统一处理
 
-    // 未登录时统一跳转到登录页（window.top 确保 iframe 内也能跳转顶层）
+    // 未登录时统一跳转到登录页
     function redirectToLogin() {
         localStorage.removeItem('currentUser');
         localStorage.removeItem('authToken');
-        window.top.location.replace('/login.html');
+        window.location.replace('/login.html');
     }
 
     async function request(method, url, body, isFile) {

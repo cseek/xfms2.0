@@ -400,22 +400,6 @@ input[type="checkbox"]+label {
     border-bottom: none;
 }
 
-.tips-subtitle {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.tips-subtitle::before {
-    content: "✓";
-    color: var(--success-color);
-    font-weight: bold;
-}
-
 .tips-list {
     list-style: none;
     margin: 0;

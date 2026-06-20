@@ -36,7 +36,6 @@
     }
 })();
 
-window.XFMS_ROUTER_ACTIVE = true;
 window.XFMSPages = window.XFMSPages || {};
 
 const ROUTES = {
@@ -202,7 +201,10 @@ async function loadRoute(page) {
 
     try {
         ensureStyle(route.css);
-        const res = await fetch(route.html, { credentials: 'same-origin' });
+        const res = await fetch(route.html, {
+            credentials: 'same-origin',
+            headers: { 'X-Route-Template': '1' }
+        });
         if (!res.ok) throw new Error('页面加载失败');
         const html = await res.text();
         if (requestId !== routeRequestId) return;
@@ -296,13 +298,6 @@ function switchLanguage(lang) {
     updateLangToggleUI(lang);
     notifyActivePageLanguage(lang);
 }
-
-// 保留消息监听，兼容独立页面或旧调用方式
-window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'languageChange') {
-        switchLanguage(event.data.lang);
-    }
-});
 
 window.addEventListener('hashchange', () => {
     loadRoute(getRouteFromHash());

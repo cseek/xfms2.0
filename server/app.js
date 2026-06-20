@@ -84,6 +84,10 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.redirect('/login.html');
 });
+app.get('/pages/:page.html', (req, res, next) => {
+    if (req.get('X-Route-Template') === '1') return next();
+    res.redirect(`/index.html#${req.params.page}`);
+});
 app.use(express.static(path.join(__dirname, '../www'), { index: false }));
 
 // 数据库连接
@@ -944,4 +948,3 @@ process.on('SIGINT', () => {
         process.exit(0);
     });
 });
-

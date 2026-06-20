@@ -194,7 +194,7 @@
                 if (xhr.status === 401 || (json && json.code === 401)) {
                     localStorage.removeItem('currentUser');
                     localStorage.removeItem('authToken');
-                    window.top.location.replace('/login.html');
+                    window.location.replace('/login.html');
                     reject(new Error('未登录'));
                     return;
                 }
@@ -454,26 +454,10 @@
         setMainActionDisabled(false);
     }
 
-    if (window.XFMS_ROUTER_ACTIVE) {
-        window.XFMSPages = window.XFMSPages || {};
-        window.XFMSPages['release-firmware'] = {
-            init,
-            onLanguageChange: applyPageLanguage,
-            destroy
-        };
-    } else {
-        // 独立页面访问时保留旧的全局覆盖行为，兼容页面内通用语言刷新。
-        window.applyLanguage = applyPageLanguage;
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'languageChange') {
-                applyPageLanguage(event.data.lang);
-            }
-        });
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
-    }
+    window.XFMSPages = window.XFMSPages || {};
+    window.XFMSPages['release-firmware'] = {
+        init,
+        onLanguageChange: applyPageLanguage,
+        destroy
+    };
 })();
