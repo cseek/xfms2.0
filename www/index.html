@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="css/common.css">
 </head>
 
-<body>
+<body class="router-shell">
     <!-- 移动端遮罩 -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
@@ -183,9 +183,9 @@
                 </div>
             </div>
 
-            <!-- 主内容区域 - 使用 iframe -->
+            <!-- 主内容区域 - 路由视图 -->
             <main class="content-area" id="contentArea">
-                <iframe id="contentFrame" src="pages/dashboard.html" frameborder="0"></iframe>
+                <div id="routeView" class="route-view"></div>
             </main>
 
             <!-- 页脚 -->

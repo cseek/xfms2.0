@@ -13,10 +13,21 @@
 @keyframes downloadRingSpin {
     to { stroke-dashoffset: -113.1; }
 }
+
+.page-content {
+    height: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+body.router-shell .route-view {
+    overflow: hidden;
+}
+
 .card {
     background-color: var(--card-color);
     padding: 1.5rem;
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -126,6 +137,7 @@ thead {
 tbody {
     display: block;
     overflow-y: auto;
+    overflow-x: hidden;
     flex: 1;
     min-height: 0;
 }

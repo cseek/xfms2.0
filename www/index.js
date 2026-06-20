@@ -7,7 +7,7 @@
  * @Date: 2026-01-24 15:30:39
  * @LastEditors: 熊昱卿(Aurson) jassimxiong@gmail.com
  * @LastEditTime: 2026-04-10 01:28:03
- * @Description: 主框架页面脚本，负责用户认证守卫、导航交互、语言切换、用户信息显示等功能
+ * @Description: 主框架页面脚本，负责用户认证守卫、路由导航、语言切换、用户信息显示等功能
  * Copyright (c) 2026 by Aurson, All Rights Reserved. 
  */
 
@@ -36,10 +36,212 @@
     }
 })();
 
+window.XFMS_ROUTER_ACTIVE = true;
+window.XFMSPages = window.XFMSPages || {};
+
+const ROUTES = {
+    dashboard: {
+        html: 'pages/dashboard.html',
+        css: 'css/dashboard.css',
+        js: 'js/dashboard.js',
+        title: '系统主页',
+        titleEn: 'Dashboard'
+    },
+    'release-firmware': {
+        html: 'pages/release-firmware.html',
+        css: 'css/release-firmware.css',
+        js: 'js/release-firmware.js',
+        title: '发布固件',
+        titleEn: 'Release Firmware'
+    },
+    'firmware-list': {
+        html: 'pages/firmware-list.html',
+        css: 'css/firmware-list.css',
+        js: 'js/firmware-list.js',
+        title: '固件列表',
+        titleEn: 'Firmware List'
+    },
+    'module-manage': {
+        html: 'pages/module-manage.html',
+        css: 'css/module-manage.css',
+        js: 'js/module-manage.js',
+        title: '模块管理',
+        titleEn: 'Module Management'
+    },
+    'project-manage': {
+        html: 'pages/project-manage.html',
+        css: 'css/project-manage.css',
+        js: 'js/project-manage.js',
+        title: '项目管理',
+        titleEn: 'Project Management'
+    },
+    'user-manage': {
+        html: 'pages/user-manage.html',
+        css: 'css/user-manage.css',
+        js: 'js/user-manage.js',
+        title: '用户管理',
+        titleEn: 'User Management'
+    },
+    settings: {
+        html: 'pages/settings.html',
+        css: 'css/settings.css',
+        js: 'js/settings.js',
+        title: '系统设置',
+        titleEn: 'System Settings'
+    }
+};
+
+let activePage = null;
+let routeRequestId = 0;
+
 // 更新页面标题
 function updatePageTitle(title) {
     document.getElementById('pageTitle').textContent = title;
 }
+
+function getRouteFromHash() {
+    const raw = (window.location.hash || '#dashboard').replace(/^#\/?/, '');
+    const page = raw.split('?')[0] || 'dashboard';
+    return ROUTES[page] ? page : 'dashboard';
+}
+
+function getRouteTitle(page) {
+    const activeLink = document.querySelector(`.nav-link[data-page="${page}"]`);
+    if (activeLink) {
+        return currentLang === 'zh'
+            ? activeLink.getAttribute('data-title')
+            : activeLink.getAttribute('data-title-en');
+    }
+    const route = ROUTES[page] || ROUTES.dashboard;
+    return currentLang === 'zh' ? route.title : route.titleEn;
+}
+
+function setActiveNavigation(page) {
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('data-page') === page);
+    });
+
+    const activeLink = document.querySelector(`.nav-link[data-page="${page}"]`);
+    const submenu = activeLink ? activeLink.closest('.nav-submenu') : null;
+    if (submenu) {
+        submenu.classList.add('active');
+        const toggle = document.querySelector(`.nav-toggle[data-submenu="${submenu.id}"]`);
+        if (toggle) {
+            const arrow = toggle.querySelector('.nav-arrow');
+            if (arrow) arrow.classList.add('active');
+        }
+    }
+    updatePageTitle(getRouteTitle(page));
+}
+
+function closeMobileMenu() {
+    document.getElementById('sidebar').classList.remove('active');
+    document.getElementById('mobileOverlay').classList.remove('active');
+}
+
+function ensureStyle(href) {
+    document.querySelectorAll('link[data-route-style]').forEach(link => {
+        if (link.getAttribute('data-route-style') !== href) {
+            link.remove();
+        }
+    });
+    if (!href || document.querySelector(`link[data-route-style="${href}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.setAttribute('data-route-style', href);
+    document.head.appendChild(link);
+}
+
+function ensureScript(src) {
+    return new Promise((resolve, reject) => {
+        const existing = document.querySelector(`script[data-route-script="${src}"]`);
+        if (existing) {
+            if (existing.dataset.loaded === 'true') {
+                resolve();
+                return;
+            }
+            existing.addEventListener('load', () => resolve(), { once: true });
+            existing.addEventListener('error', reject, { once: true });
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = src;
+        script.setAttribute('data-route-script', src);
+        script.onload = () => {
+            script.dataset.loaded = 'true';
+            resolve();
+        };
+        script.onerror = reject;
+        document.body.appendChild(script);
+    });
+}
+
+function extractPageBody(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script').forEach(script => script.remove());
+    return doc.body ? doc.body.innerHTML : html;
+}
+
+async function loadRoute(page) {
+    const route = ROUTES[page] || ROUTES.dashboard;
+    const requestId = ++routeRequestId;
+    const view = document.getElementById('routeView');
+
+    if (activePage && activePage !== page) {
+        const currentModule = window.XFMSPages[activePage];
+        if (currentModule && typeof currentModule.destroy === 'function') {
+            currentModule.destroy();
+        }
+    }
+
+    activePage = page;
+    setActiveNavigation(page);
+    view.innerHTML = '<div class="route-loading">加载中...</div>';
+
+    try {
+        ensureStyle(route.css);
+        const res = await fetch(route.html, { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('页面加载失败');
+        const html = await res.text();
+        if (requestId !== routeRequestId) return;
+
+        view.innerHTML = extractPageBody(html);
+        view.scrollTop = 0;
+        applyLanguage(currentLang);
+
+        await ensureScript(route.js);
+        if (requestId !== routeRequestId) return;
+
+        const pageModule = window.XFMSPages[page];
+        if (pageModule && typeof pageModule.init === 'function') {
+            await pageModule.init();
+        }
+    } catch (e) {
+        console.error('路由加载失败:', e);
+        if (requestId === routeRequestId) {
+            view.innerHTML = '<div class="route-error">页面加载失败，请刷新后重试。</div>';
+        }
+    }
+}
+
+function navigateTo(page) {
+    if (!ROUTES[page]) page = 'dashboard';
+    const nextHash = `#${page}`;
+    if (window.location.hash === nextHash) {
+        loadRoute(page);
+    } else {
+        window.location.hash = nextHash;
+    }
+    if (window.innerWidth <= 1024) closeMobileMenu();
+}
+
+window.XFMSRouter = {
+    navigate: navigateTo,
+    setLanguage: switchLanguage,
+    getCurrentPage: () => activePage
+};
 
 // 菜单折叠功能
 document.querySelectorAll('.nav-toggle').forEach(toggle => {
@@ -54,40 +256,21 @@ document.querySelectorAll('.nav-toggle').forEach(toggle => {
     });
 });
 
-// 导航切换
 // Logo 图标点击跳转系统主页
 document.getElementById('sidebarLogoIcon').addEventListener('click', function() {
-    const dashLink = document.querySelector('.nav-link[data-page="dashboard"]');
-    if (dashLink) dashLink.click();
+    navigateTo('dashboard');
 });
 
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', function (e) {
         const page = this.getAttribute('data-page');
-        
-        // 如果是折叠菜单的切换按钮，不进行页面切换
-        if (!page) {
-            return;
-        }
-        
+        if (!page) return;
+
         e.preventDefault();
-        // 获取页面标题
-        const title = currentLang === 'zh'
-            ? this.getAttribute('data-title')
-            : this.getAttribute('data-title-en');
-        // 更新标题
-        updatePageTitle(title);
-        // 更新导航状态
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
-        // 加载页面
-        document.getElementById('contentFrame').src = `pages/${page}.html`;
-        // 移动端关闭菜单
-        if (window.innerWidth <= 1024) {
-            toggleMobileMenu();
-        }
+        navigateTo(page);
     });
 });
+
 // 移动端菜单
 document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
 document.getElementById('mobileOverlay').addEventListener('click', toggleMobileMenu);
@@ -95,33 +278,36 @@ function toggleMobileMenu() {
     document.getElementById('sidebar').classList.toggle('active');
     document.getElementById('mobileOverlay').classList.toggle('active');
 }
-// 应用语言到主框架（供 iframe postMessage 调用）
+
+function notifyActivePageLanguage(lang) {
+    const pageModule = activePage && window.XFMSPages[activePage];
+    if (pageModule && typeof pageModule.onLanguageChange === 'function') {
+        pageModule.onLanguageChange(lang);
+    }
+}
+
+// 应用语言到主框架和当前路由页
 function switchLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('firmwareLang', lang);
     applyLanguage(lang);
-    // 同步更新页面标题
-    const activeLink = document.querySelector('.nav-link.active');
-    if (activeLink) {
-        const title = lang === 'zh'
-            ? activeLink.getAttribute('data-title')
-            : activeLink.getAttribute('data-title-en');
-        updatePageTitle(title);
-    }
-    // 更新右上角用户角色显示（根据当前语言）
+    updatePageTitle(getRouteTitle(activePage || getRouteFromHash()));
     updateUserRoleDisplay();
+    updateLangToggleUI(lang);
+    notifyActivePageLanguage(lang);
 }
-// 监听来自 iframe 的语言切换消息（系统设置页保存时触发）
+
+// 保留消息监听，兼容独立页面或旧调用方式
 window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'languageChange') {
         switchLanguage(event.data.lang);
-        // 再将消息转发给当前 iframe（非设置页的其他页面不需要转发，但设置页已处理）
-        const iframe = document.getElementById('contentFrame');
-        if (iframe.contentWindow) {
-            iframe.contentWindow.postMessage(event.data, '*');
-        }
     }
 });
+
+window.addEventListener('hashchange', () => {
+    loadRoute(getRouteFromHash());
+});
+
 // 退出登录
 async function doLogout() {
     try { await API.auth.logout(); } catch(e) { /* ignore */ }
@@ -190,6 +376,7 @@ document.getElementById('saveChangePasswordBtn').addEventListener('click', async
         alert(e.message || '修改失败');
     }
 });
+
 // 页面加载时应用语言并显示用户名
 document.addEventListener('DOMContentLoaded', function () {
     applyLanguage(currentLang);
@@ -202,8 +389,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     // 显示用户角色
     updateUserRoleDisplay();
-    // 初始化语言切换按鈕状态
+    // 初始化语言切换按钮状态
     updateLangToggleUI(currentLang);
+    loadRoute(getRouteFromHash());
 });
 
 function updateLangToggleUI(lang) {
@@ -248,11 +436,5 @@ document.getElementById('sidebarLangToggle').addEventListener('click', function(
     const lang = opt.getAttribute('data-lang');
     if (lang && lang !== currentLang) {
         switchLanguage(lang);
-        updateLangToggleUI(lang);
-        // 广播给 iframe
-        const iframe = document.getElementById('contentFrame');
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage({ type: 'languageChange', lang }, '*');
-        }
     }
 });

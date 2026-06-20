@@ -26,8 +26,11 @@
     };
 
     async function init() {
+        currentLang = localStorage.getItem('firmwareLang') || 'zh';
+        selectedFile = null;
+        resetUploadTask(true);
         await loadData();
-        applyLanguage(currentLang);
+        applyPageLanguage(currentLang);
         updateProjectSelects();
         setupEventListeners();
         // 权限控制：仅管理员或开发者允许发布固件
@@ -386,7 +389,7 @@
     }
 
 
-    function applyLanguage(lang) {
+    function applyPageLanguage(lang) {
         currentLang = lang;
         
         const trans = translations[lang];
@@ -442,19 +445,35 @@
         updateProjectSelects();
     }
 
-    // 全局暴露函数
-    window.applyLanguage = applyLanguage;
-
-    window.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'languageChange') {
-            applyLanguage(event.data.lang);
+    function destroy() {
+        if (uploadTask.state === 'uploading' && uploadTask.xhr) {
+            uploadTask.cancelRequested = true;
+            uploadTask.xhr.abort();
         }
-    });
+        resetUploadTask(true);
+        setMainActionDisabled(false);
+    }
 
-    // 初始化
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+    if (window.XFMS_ROUTER_ACTIVE) {
+        window.XFMSPages = window.XFMSPages || {};
+        window.XFMSPages['release-firmware'] = {
+            init,
+            onLanguageChange: applyPageLanguage,
+            destroy
+        };
     } else {
-        init();
+        // 独立页面访问时保留旧的全局覆盖行为，兼容页面内通用语言刷新。
+        window.applyLanguage = applyPageLanguage;
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'languageChange') {
+                applyPageLanguage(event.data.lang);
+            }
+        });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     }
 })();

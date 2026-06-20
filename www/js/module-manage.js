@@ -23,6 +23,12 @@
     let currentPageData = [];
 
     async function init() {
+        currentLang = localStorage.getItem('firmwareLang') || 'zh';
+        currentEditId = null;
+        deleteId = null;
+        currentPage = 1;
+        currentFilters = {};
+        currentPageData = [];
         await DataManager.loadData();
         applyLanguage(currentLang);
         await fetchPage();
@@ -226,14 +232,21 @@
         fetchPage();
     };
 
-    window.addEventListener('message', (event) => {
-        if (event.data.type === 'languageChange') {
-            currentLang = event.data.lang;
-            applyLanguage(currentLang);
-            fetchPage();
-        }
-    });
+    function onLanguageChange(lang) {
+        currentLang = lang;
+        applyLanguage(currentLang);
+        fetchPage();
+    }
 
-    document.addEventListener('DOMContentLoaded', init);
+    if (window.XFMS_ROUTER_ACTIVE) {
+        window.XFMSPages = window.XFMSPages || {};
+        window.XFMSPages['module-manage'] = { init, onLanguageChange };
+    } else {
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'languageChange') {
+                onLanguageChange(event.data.lang);
+            }
+        });
+        document.addEventListener('DOMContentLoaded', init);
+    }
 })();
-

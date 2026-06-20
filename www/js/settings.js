@@ -16,6 +16,7 @@
     let currentLang = localStorage.getItem('firmwareLang') || 'zh';
 
     function init() {
+        currentLang = localStorage.getItem('firmwareLang') || 'zh';
         applyLanguage(currentLang);
         loadSettings();
         setupEventListeners();
@@ -141,18 +142,28 @@
             currentLang = newLang;
             localStorage.setItem('firmwareLang', newLang);
             applyLanguage(newLang);
-            window.parent.postMessage({ type: 'languageChange', lang: newLang }, '*');
+            if (window.XFMSRouter && typeof window.XFMSRouter.setLanguage === 'function') {
+                window.XFMSRouter.setLanguage(newLang);
+            }
         }
 
         alert(trans.settingsSaved || '设置已保存');
     }
 
-    window.addEventListener('message', (event) => {
-        if (event.data.type === 'languageChange') {
-            currentLang = event.data.lang;
-            applyLanguage(currentLang);
-        }
-    });
+    function onLanguageChange(lang) {
+        currentLang = lang;
+        applyLanguage(currentLang);
+    }
 
-    document.addEventListener('DOMContentLoaded', init);
+    if (window.XFMS_ROUTER_ACTIVE) {
+        window.XFMSPages = window.XFMSPages || {};
+        window.XFMSPages.settings = { init, onLanguageChange };
+    } else {
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'languageChange') {
+                onLanguageChange(event.data.lang);
+            }
+        });
+        document.addEventListener('DOMContentLoaded', init);
+    }
 })();

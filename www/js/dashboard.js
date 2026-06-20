@@ -15,6 +15,7 @@
     
     let currentLang = localStorage.getItem('firmwareLang') || 'zh';
     let _loginCount = 0;
+    let refreshTimer = null;
 
     // 每个状态对应的颜色列表（模块切片用）
     const SLICE_COLORS = [
@@ -23,6 +24,7 @@
     ];
 
     async function init() {
+        currentLang = localStorage.getItem('firmwareLang') || 'zh';
         applyLanguage(currentLang);
         const [, statsData] = await Promise.all([
             DataManager.loadData(),
@@ -32,6 +34,8 @@
         updateStats();
         renderCharts();
         loadActivityLogs();
+        if (refreshTimer) clearInterval(refreshTimer);
+        refreshTimer = setInterval(() => { try { loadActivityLogs(); } catch(e) {} }, 30000);
     }
 
     function updateStats() {
@@ -228,16 +232,29 @@
         }
     }
 
-    window.addEventListener('message', (event) => {
-        if (event.data.type === 'languageChange') {
-            currentLang = event.data.lang;
-            applyLanguage(currentLang);
-            // reload activity log translations
-            loadActivityLogs();
-        }
-    });
+    function onLanguageChange(lang) {
+        currentLang = lang;
+        applyLanguage(currentLang);
+        // reload activity log translations
+        loadActivityLogs();
+    }
 
-    document.addEventListener('DOMContentLoaded', init);
-    // 定期刷新活动日志
-    setInterval(() => { try { loadActivityLogs(); } catch(e) {} }, 30000);
+    function destroy() {
+        if (refreshTimer) {
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+        }
+    }
+
+    if (window.XFMS_ROUTER_ACTIVE) {
+        window.XFMSPages = window.XFMSPages || {};
+        window.XFMSPages.dashboard = { init, onLanguageChange, destroy };
+    } else {
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'languageChange') {
+                onLanguageChange(event.data.lang);
+            }
+        });
+        document.addEventListener('DOMContentLoaded', init);
+    }
 })();

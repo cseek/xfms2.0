@@ -31,6 +31,13 @@
     };
 
     async function init() {
+        currentLang = localStorage.getItem('firmwareLang') || 'zh';
+        deleteId = null;
+        currentEditId = null;
+        currentPage = 1;
+        currentFilters = {};
+        currentPageData = [];
+        resetDownloadTask(true);
         await loadData();
         applyLanguage(currentLang);
         updateFilterSelects();
@@ -67,17 +74,11 @@
         document.getElementById('filterStatus').addEventListener('change', filterFirmwareList);
         document.getElementById('filterKeyword').addEventListener('input', filterFirmwareList);
         document.getElementById('goReleaseFirmwareBtn').addEventListener('click', function () {
-            const parent = window.parent;
-            parent.document.getElementById('contentFrame').src = 'pages/release-firmware.html';
-            parent.document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const releaseLink = parent.document.querySelector('.nav-link[data-page="release-firmware"]');
-            if (releaseLink) {
-                releaseLink.classList.add('active');
-                const title = (parent.currentLang === 'zh')
-                    ? releaseLink.getAttribute('data-title')
-                    : releaseLink.getAttribute('data-title-en');
-                parent.document.getElementById('pageTitle').textContent = title || '发布固件';
+            if (window.XFMSRouter && typeof window.XFMSRouter.navigate === 'function') {
+                window.XFMSRouter.navigate('release-firmware');
+                return;
             }
+            window.location.href = '/index#release-firmware';
         });
         document.getElementById('closeConfirmModal').addEventListener('click', () => closeModal('confirmModal'));
         document.getElementById('cancelConfirmBtn').addEventListener('click', () => closeModal('confirmModal'));
@@ -551,15 +552,31 @@
         fetchPage();
     };
 
-    window.addEventListener('message', (event) => {
-        if (event.data.type === 'languageChange') {
-            currentLang = event.data.lang;
-            applyLanguage(currentLang);
-            updateSearchPlaceholder();
-            updateFilterSelects();
-            fetchPage();
-        }
-    });
+    function onLanguageChange(lang) {
+        currentLang = lang;
+        applyLanguage(currentLang);
+        updateSearchPlaceholder();
+        updateFilterSelects();
+        fetchPage();
+    }
 
-    document.addEventListener('DOMContentLoaded', init);
+    function destroy() {
+        if (downloadTask.state === 'downloading' && downloadTask.xhr) {
+            downloadTask.cancelRequested = true;
+            downloadTask.xhr.abort();
+        }
+        resetDownloadTask(true);
+    }
+
+    if (window.XFMS_ROUTER_ACTIVE) {
+        window.XFMSPages = window.XFMSPages || {};
+        window.XFMSPages['firmware-list'] = { init, onLanguageChange, destroy };
+    } else {
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'languageChange') {
+                onLanguageChange(event.data.lang);
+            }
+        });
+        document.addEventListener('DOMContentLoaded', init);
+    }
 })();
