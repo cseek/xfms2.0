@@ -13,7 +13,11 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../database/xfms.db');
+const defaultDbPath = path.join(__dirname, '../database/xfms.db');
+
+function getDbPath() {
+    return process.env.XFMS_DB_PATH || defaultDbPath;
+}
 
 // 与 app.js 保持一致的日志工具
 function timestamp() {
@@ -26,7 +30,7 @@ const logger = {
     debug: (...a) => console.log( `[${timestamp()}] [DEBUG]`, ...a),
 };
 
-function initDatabase() {
+function initDatabase(dbPath = getDbPath()) {
     const db = new sqlite3.Database(dbPath, (err) => {
         if (err) {
             logger.error('打开数据库错误:', err.message);
@@ -241,7 +245,7 @@ function insertDefaultModules(db) {
 }
 
 // 导出初始化函数
-module.exports = { initDatabase };
+module.exports = { initDatabase, getDbPath };
 
 // 如果直接运行此脚本
 if (require.main === module) {

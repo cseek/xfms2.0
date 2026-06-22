@@ -18,7 +18,7 @@ const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
 const crypto = require('crypto');
-const { initDatabase } = require('./init-db');
+const { initDatabase, getDbPath } = require('./init-db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -91,7 +91,7 @@ app.get('/pages/:page.html', (req, res, next) => {
 app.use(express.static(path.join(__dirname, '../www'), { index: false }));
 
 // 数据库连接
-const dbPath = path.join(__dirname, '../database/xfms.db');
+const dbPath = getDbPath();
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         logger.error('数据库连接失败:', err.message);
@@ -105,7 +105,7 @@ logger.info('正在初始化数据库...');
 initDatabase();
 
 // multer 文件上传配置
-const uploadDir = path.join(__dirname, '../uploads');
+const uploadDir = process.env.XFMS_UPLOAD_DIR || path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
