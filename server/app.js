@@ -136,8 +136,8 @@ function toDbStatus(feStatus) {
     return FE_TO_DB[feStatus] || feStatus || '待测试';
 }
 
-// 固件版本格式：V主版本.次版本.修订版本（可选.构建号），V 前缀可省略
-const FIRMWARE_VERSION_REGEX = /^V?\d+\.\d+\.\d+(\.\d+)?$/;
+// 固件版本格式：主版本.次版本.修订版本（可选.构建号），例如 1.0.1 或 1.0.1.2
+const FIRMWARE_VERSION_REGEX = /^\d+\.\d+\.\d+(\.\d+)?$/;
 
 // ==================== Token 会话存储 ====================
 // 内存 Map：token -> { userId, username, role, createdAt, lastActivityAt }
@@ -754,7 +754,7 @@ app.post('/api/firmware', requireRole('管理员', '开发者'), (req, res, next
     const { name, version, description, project_id, module_id, status, maxFileSize } = req.body;
     if (!version) return res.status(400).json({ code: 400, message: '固件版本不能为空', data: null });
     if (!FIRMWARE_VERSION_REGEX.test(String(version).trim())) {
-        return res.status(400).json({ code: 400, message: '版本号格式不正确，应为 V主版本.次版本.修订版本（可选.构建号），例如: V1.0.0 或 V1.0.0.1', data: null });
+        return res.status(400).json({ code: 400, message: '版本号格式不正确，应为 主版本.次版本.修订版本（可选.构建号），例如: 1.0.1 或 1.0.1.2', data: null });
     }
     if (!module_id) return res.status(400).json({ code: 400, message: '请选择模块', data: null });
 
@@ -836,7 +836,7 @@ app.put('/api/firmware/:id', requireRole('管理员', '开发者', '测试员'),
     const dbStatus = toDbStatus(feStatus);
 
     if (version !== undefined && version !== null && !FIRMWARE_VERSION_REGEX.test(String(version).trim())) {
-        return res.status(400).json({ code: 400, message: '版本号格式不正确，应为 V主版本.次版本.修订版本（可选.构建号），例如: V1.0.0 或 V1.0.0.1', data: null });
+        return res.status(400).json({ code: 400, message: '版本号格式不正确，应为 主版本.次版本.修订版本（可选.构建号），例如: 1.0.1 或 1.0.1.2', data: null });
     }
 
     // 测试员：只允许修改状态，且仅限 pending ↔ tested

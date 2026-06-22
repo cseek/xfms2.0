@@ -305,8 +305,8 @@
             alert((trans.fileSizeExceeds || '文件大小超过限制') + `\uff08最大 ${maxMB} MB\uff0c当前 ${fileMB} MB\uff09`);
             return false;
         }
-        if (!/^V?\d+\.\d+\.\d+(\.\d+)?$/.test(version)) {
-            alert(trans.invalidVersionFormat || '版本号格式不正确，例如: V1.0.0 / 1.0.0 或 V1.0.0.1 / 1.0.0.1');
+        if (!/^\d+\.\d+\.\d+(\.\d+)?$/.test(version)) {
+            alert(trans.invalidVersionFormat || '版本号格式不正确，例如: 1.0.1 或 1.0.1.2');
             return false;
         }
         return true;
@@ -413,7 +413,7 @@
             const el = document.getElementById(id);
             if (el && val) el.placeholder = val;
         }
-        setPlaceholder('releaseFirmwareVersion',    trans.releaseFirmwareVersionPlaceholder || '例如: V1.0.0 或 V1.0.0.1');
+        setPlaceholder('releaseFirmwareVersion',    trans.releaseFirmwareVersionPlaceholder || '例如: 1.0.1 或 1.0.1.2');
         setPlaceholder('releaseFirmwareDescription', trans.releaseFirmwareDescPlaceholder   || '描述固件功能和更新内容');
         setText('fileUploadText', trans.releaseFirmwareFileHint || '支持任何格式的文件，建议不超过100MB');
         
@@ -425,7 +425,7 @@
             document.getElementById('tipsFirmwareName').textContent = trans.tipsFirmwareName || '固件名称应简洁明了，便于识别';
         }
         if (document.getElementById('tipsVersion')) {
-            document.getElementById('tipsVersion').textContent = trans.tipsVersion || '版本号遵循 V主版本.次版本.修订版本（可选.构建号）格式';
+            document.getElementById('tipsVersion').textContent = trans.tipsVersion || '版本号遵循 主版本.次版本.修订版本（可选.构建号）格式';
         }
         if (document.getElementById('tipsDescription')) {
             document.getElementById('tipsDescription').textContent = trans.tipsDescription || '完整的固件描述有助于用户了解更新内容';

@@ -171,7 +171,7 @@ async function createFirmware(baseUrl, token, projectId, moduleId, suffix, overr
     const form = new FormData();
 
     if (overrides.name !== null) form.set('name', overrides.name || `matrix-firmware-${suffix}`);
-    if (overrides.version !== null) form.set('version', overrides.version || `V1.0.${suffix}`);
+    if (overrides.version !== null) form.set('version', overrides.version || `1.0.${suffix}`);
     form.set('description', overrides.description || 'permission matrix firmware');
     if (overrides.projectId !== null) form.set('project_id', String(overrides.projectId || projectId));
     if (overrides.moduleId !== null) form.set('module_id', String(overrides.moduleId || moduleId));
@@ -368,7 +368,7 @@ async function runCrudPermissionMatrix(baseUrl, tokens, seeded) {
         const updateFirmware = await createFirmware(baseUrl, adminToken, seeded.project.id, seeded.module.id, suffix++);
         assert.strictEqual(updateFirmware.status, 200);
         const firmwareUpdate = await request(baseUrl, 'PUT', `/api/firmware/${updateFirmware.body.data.id}`, token, {
-            version: `V2.0.${suffix++}`,
+            version: `2.0.${suffix++}`,
             description: `${roleKey} update`,
             project_id: seeded.project.id,
             module_id: seeded.module.id,
@@ -493,6 +493,11 @@ async function runValidationAndDependencyTests(baseUrl, tokens, seeded) {
         version: '1.0'
     });
     assert.strictEqual(invalidVersion.status, 400);
+
+    const prefixedVersion = await createFirmware(baseUrl, adminToken, seeded.project.id, seeded.module.id, 820, {
+        version: 'V1.0.1'
+    });
+    assert.strictEqual(prefixedVersion.status, 400);
 
     const missingModule = await createFirmware(baseUrl, adminToken, seeded.project.id, seeded.module.id, 83, {
         moduleId: null
@@ -625,7 +630,7 @@ async function runFirmwareFileAndActivityTests(baseUrl, tokens, seeded) {
     );
 
     const update = await request(baseUrl, 'PUT', `/api/firmware/${firmware.body.data.id}`, tokens.developer, {
-        version: 'V3.0.0',
+        version: '3.0.0',
         description: 'developer update for activity log',
         project_id: seeded.project.id,
         module_id: seeded.module.id,
@@ -681,7 +686,7 @@ async function runTesterFirmwareRestrictions(baseUrl, tokens, seeded) {
     const activatedFirmware = await createFirmware(baseUrl, tokens.admin, seeded.project.id, seeded.module.id, 91);
     assert.strictEqual(activatedFirmware.status, 200);
     const adminActivate = await request(baseUrl, 'PUT', `/api/firmware/${activatedFirmware.body.data.id}`, tokens.admin, {
-        version: 'V9.1.0',
+        version: '9.1.0',
         description: 'activate target',
         project_id: seeded.project.id,
         module_id: seeded.module.id,

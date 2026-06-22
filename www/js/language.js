@@ -143,19 +143,19 @@ const translations = {
         releaseFirmwareFileHint: "支持 zip / tar / hex / bin / img / apk / xpk / hap / dep / rpm 等格式",
         reset: "重置",
         publish: "发布",
-        releaseFirmwareVersionPlaceholder: "例如: V1.0.0 或 V1.0.0.1",
+        releaseFirmwareVersionPlaceholder: "例如: 1.0.1 或 1.0.1.2",
         releaseFirmwareDescPlaceholder: "描述固件功能和更新内容",
         
         // 温馨提示
         tipsTitle: "温馨提示",
         tipsFirmwareName: "如果没有匹配的模块或项目，请联系管理员添加",
-        tipsVersion: "版本号遵循 V主版本.次版本.修订版本（可选.构建号）格式",
+        tipsVersion: "版本号遵循 主版本.次版本.修订版本（可选.构建号）格式",
         tipsDescription: "完整的固件描述有助于用户了解更新内容",
         
         tipsFileSize: "文件大小不能超过系统设置里的最大文件大小",
         tipsFileFormat: "支持所有常见的压缩和固件格式",
         tipsFileSecurity: "上传前请确保文件的完整性和安全性",
-        invalidVersionFormat: "版本号格式不正确，例如: V1.0.0 或 V1.0.0.1",
+        invalidVersionFormat: "版本号格式不正确，例如: 1.0.1 或 1.0.1.2",
         publishSuccess: "固件发布成功！",
         
         // 固件列表
@@ -412,15 +412,15 @@ const translations = {
         releaseFirmwareFileHint: "Supports zip / tar / hex / bin / img / apk / xpk / hap / dep / rpm and more",
         reset: "Reset",
         publish: "Publish",
-        releaseFirmwareVersionPlaceholder: "e.g. V1.0.0 or V1.0.0.1",
+        releaseFirmwareVersionPlaceholder: "e.g. 1.0.1 or 1.0.1.2",
         releaseFirmwareDescPlaceholder: "Describe firmware features and updates",
-        invalidVersionFormat: "Invalid version format, e.g., V1.0.0 or V1.0.0.1",
+        invalidVersionFormat: "Invalid version format, e.g., 1.0.1 or 1.0.1.2",
         publishSuccess: "Firmware published successfully!",
         
         // Tips
         tipsTitle: "Helpful Tips",
         tipsFirmwareName: "If no matching module or project exists, please contact an admin to add one",
-        tipsVersion: "Version follows the V[major].[minor].[patch] format (optional .[build])",
+        tipsVersion: "Version follows the [major].[minor].[patch] format (optional .[build])",
         tipsDescription: "Complete firmware description helps users understand updates",
         
         tipsFileSize: "File size must not exceed the max file size in system settings",

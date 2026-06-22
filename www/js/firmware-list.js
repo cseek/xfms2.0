@@ -160,8 +160,8 @@
         if (!moduleId)    { alert(trans.selectModuleFirst);  return; }
         if (!version)     { alert(trans.enterFirmwareVersion); return; }
         if (!description) { alert(trans.enterFirmwareDescription); return; }
-        if (!/^V?\d+\.\d+\.\d+(\.\d+)?$/.test(version)) {
-            alert(trans.invalidVersionFormat || '版本号格式不正确，例如: V1.0.0 / 1.0.0 或 V1.0.0.1 / 1.0.0.1');
+        if (!/^\d+\.\d+\.\d+(\.\d+)?$/.test(version)) {
+            alert(trans.invalidVersionFormat || '版本号格式不正确，例如: 1.0.1 或 1.0.1.2');
             return;
         }
         
