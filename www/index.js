@@ -46,10 +46,10 @@ const ROUTES = {
         title: '系统主页',
         titleEn: 'Dashboard'
     },
-    'release-firmware': {
-        html: 'pages/release-firmware.html',
-        css: 'css/release-firmware.css',
-        js: 'js/release-firmware.js',
+    'firmware-release': {
+        html: 'pages/firmware-release.html',
+        css: 'css/firmware-release.css',
+        js: 'js/firmware-release.js',
         title: '发布固件',
         titleEn: 'Release Firmware'
     },
@@ -60,24 +60,24 @@ const ROUTES = {
         title: '固件列表',
         titleEn: 'Firmware List'
     },
-    'module-manage': {
-        html: 'pages/module-manage.html',
-        css: 'css/module-manage.css',
-        js: 'js/module-manage.js',
+    'module-management': {
+        html: 'pages/module-management.html',
+        css: 'css/module-management.css',
+        js: 'js/module-management.js',
         title: '模块管理',
         titleEn: 'Module Management'
     },
-    'project-manage': {
-        html: 'pages/project-manage.html',
-        css: 'css/project-manage.css',
-        js: 'js/project-manage.js',
+    'project-management': {
+        html: 'pages/project-management.html',
+        css: 'css/project-management.css',
+        js: 'js/project-management.js',
         title: '项目管理',
         titleEn: 'Project Management'
     },
-    'user-manage': {
-        html: 'pages/user-manage.html',
-        css: 'css/user-manage.css',
-        js: 'js/user-manage.js',
+    'user-management': {
+        html: 'pages/user-management.html',
+        css: 'css/user-management.css',
+        js: 'js/user-management.js',
         title: '用户管理',
         titleEn: 'User Management'
     },

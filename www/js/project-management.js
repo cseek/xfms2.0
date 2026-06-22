@@ -238,5 +238,5 @@
     }
 
     window.XFMSPages = window.XFMSPages || {};
-    window.XFMSPages['project-manage'] = { init, onLanguageChange };
+    window.XFMSPages['project-management'] = { init, onLanguageChange };
 })();

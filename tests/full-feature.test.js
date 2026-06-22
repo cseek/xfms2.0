@@ -854,10 +854,10 @@ async function runFrontendRouteAndPermissionTests(baseUrl) {
     const routeExpectations = [
         ['dashboard', '系统主页'],
         ['firmware-list', '固件列表'],
-        ['release-firmware', '发布固件'],
-        ['module-manage', '模块管理'],
-        ['project-manage', '项目管理'],
-        ['user-manage', '用户管理'],
+        ['firmware-release', '发布固件'],
+        ['module-management', '模块管理'],
+        ['project-management', '项目管理'],
+        ['user-management', '用户管理'],
         ['settings', '系统设置']
     ];
 
@@ -912,9 +912,9 @@ async function runFrontendRouteAndPermissionTests(baseUrl) {
             assert.strictEqual(settings.resetDisabled, expected.adminOnlyDisabled, `${roleKey} reset settings UI`);
 
             for (const [route, addSelector, rowSelector] of [
-                ['project-manage', '#addProjectBtn', '#projectListTable tr'],
-                ['module-manage', '#addModuleBtn', '#moduleListTable tr'],
-                ['user-manage', '#addUserBtn', '#userListTable tr']
+                ['project-management', '#addProjectBtn', '#projectListTable tr'],
+                ['module-management', '#addModuleBtn', '#moduleListTable tr'],
+                ['user-management', '#addUserBtn', '#userListTable tr']
             ]) {
                 await navigateRoute(client, baseUrl, route);
                 await waitForPageCondition(client, `(() => ({
@@ -959,7 +959,7 @@ async function runFrontendRouteAndPermissionTests(baseUrl) {
             assert.strictEqual(firmware.editDisabled, expected.firmwareModifyDisabled, `${roleKey} firmware edit UI`);
             assert.strictEqual(firmware.deleteDisabled, expected.firmwareModifyDisabled, `${roleKey} firmware delete UI`);
 
-            await navigateRoute(client, baseUrl, 'release-firmware');
+            await navigateRoute(client, baseUrl, 'firmware-release');
             const release = await pageEval(client, `(() => ({
                 publishDisabled: document.getElementById('publishBtn')?.disabled,
                 resetDisabled: document.getElementById('resetBtn')?.disabled,

@@ -455,7 +455,7 @@
     }
 
     window.XFMSPages = window.XFMSPages || {};
-    window.XFMSPages['release-firmware'] = {
+    window.XFMSPages['firmware-release'] = {
         init,
         onLanguageChange: applyPageLanguage,
         destroy

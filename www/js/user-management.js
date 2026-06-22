@@ -282,5 +282,5 @@
     }
 
     window.XFMSPages = window.XFMSPages || {};
-    window.XFMSPages['user-manage'] = { init, onLanguageChange };
+    window.XFMSPages['user-management'] = { init, onLanguageChange };
 })();

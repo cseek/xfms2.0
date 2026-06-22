@@ -239,5 +239,5 @@
     }
 
     window.XFMSPages = window.XFMSPages || {};
-    window.XFMSPages['module-manage'] = { init, onLanguageChange };
+    window.XFMSPages['module-management'] = { init, onLanguageChange };
 })();

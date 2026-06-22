@@ -75,10 +75,10 @@
         document.getElementById('filterKeyword').addEventListener('input', filterFirmwareList);
         document.getElementById('goReleaseFirmwareBtn').addEventListener('click', function () {
             if (window.XFMSRouter && typeof window.XFMSRouter.navigate === 'function') {
-                window.XFMSRouter.navigate('release-firmware');
+                window.XFMSRouter.navigate('firmware-release');
                 return;
             }
-            window.location.href = '/index#release-firmware';
+            window.location.href = '/index#firmware-release';
         });
         document.getElementById('closeConfirmModal').addEventListener('click', () => closeModal('confirmModal'));
         document.getElementById('cancelConfirmBtn').addEventListener('click', () => closeModal('confirmModal'));
