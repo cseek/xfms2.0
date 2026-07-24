@@ -16,10 +16,6 @@
     box-sizing: border-box;
 }
 
-body.router-shell .route-view {
-    overflow: hidden;
-}
-
 .card {
     background-color: var(--card-color);
     padding: 1.5rem;
@@ -400,8 +396,13 @@ textarea.form-control {
 }
 
 /* ── 平板响应式（768px–1024px） ── */
-@media (max-width: 1024px) {
-    body { height: auto; overflow-y: auto; }
+@media (max-width: 1200px) {
+    .page-content {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
     .card {
         height: auto;
         overflow: visible;
@@ -418,7 +419,6 @@ textarea.form-control {
 }
 
 @media (max-width: 768px) {
-    body { height: auto; overflow-y: auto; }
     .card-header {
         flex-direction: column;
         align-items: flex-start;
@@ -460,7 +460,7 @@ textarea.form-control {
     tbody tr { display: table-row; }
 }
 
-@media (max-width: 600px), (max-width: 1024px) and (orientation: portrait) {
+@media (max-width: 1024px) and (orientation: portrait), (max-width: 900px) {
     .table-container {
         border: none;
         overflow-x: visible;
@@ -621,9 +621,10 @@ textarea.form-control {
 }
 
 #projectDetailModal .modal {
-    height: 520px;
-    max-height: 90vh;
-    overflow-y: hidden;
+    height: auto;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -645,4 +646,99 @@ textarea.form-control {
 #projectModal .modal-title {
     flex: 1;
     text-align: center;
+}
+
+/* 卡片模式统一在窄屏与中尺寸竖屏启用，并由路由视图负责页面滚动。 */
+@media (max-width: 1024px) and (orientation: portrait), (max-width: 900px) {
+    .management-page {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
+    .management-page .card {
+        height: auto;
+        overflow: visible;
+    }
+
+    .management-page .card-header {
+        align-items: stretch;
+    }
+
+    .management-page .card-filters,
+    .management-page .card-actions {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .management-page .card-filters .form-group {
+        flex: 1 1 12rem;
+        min-width: 0;
+    }
+
+    .management-page .form-control,
+    .management-page .btn,
+    .management-page .pagination-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .management-page .pagination-bar {
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .management-page tbody td {
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .management-page tbody td:not(.actions) {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .management-page .actions-inner {
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
+    }
+
+    .modal-overlay {
+        padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    }
+
+    .modal {
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100dvh - 2rem);
+    }
+
+    .modal-close {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .modal-body {
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    .form-scroll-box {
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 600px) {
+    .management-page .card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .management-page .pagination-bar {
+        width: 100%;
+        justify-content: center;
+    }
 }

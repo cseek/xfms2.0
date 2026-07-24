@@ -40,11 +40,13 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
 body.router-shell {
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -52,12 +54,14 @@ body.router-shell {
 .main-container {
     display: flex;
     height: 100vh;
+    height: 100dvh;
+    min-height: 0;
     overflow: hidden;
 }
 
 /* 侧边栏样式 */
 .sidebar {
-    width: var(--sidebar-width);
+    width: min(var(--sidebar-width), 100vw);
     background-color: #000000;
     box-shadow: 4px 0 16px rgba(0,0,0,0.25), 1px 0 0 rgba(255,255,255,0.04);
     display: flex;
@@ -65,6 +69,7 @@ body.router-shell {
     transition: all 0.3s ease;
     z-index: 90;
     height: 100vh;
+    height: 100dvh;
 }
 
 /* 侧边栏顶部 */
@@ -257,10 +262,12 @@ body.router-shell {
 /* 右侧内容包装器 */
 .content-wrapper {
     flex: 1;
+    min-width: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    height: 100vh;
+    height: 100%;
 }
 
 /* 头部样式 */
@@ -289,17 +296,23 @@ header {
 
 .header-center {
     flex: 1;
+    min-width: 0;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .page-title {
+    min-width: 0;
+    max-width: 100%;
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-right {
@@ -345,7 +358,9 @@ header {
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
-    width: 100%;
+    width: max-content;
+    min-width: 10rem;
+    max-width: calc(100vw - 1rem);
     background: var(--card-bg, #fff);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
@@ -429,6 +444,8 @@ header {
 /* 主内容区域 */
 .content-area {
     flex: 1;
+    min-width: 0;
+    min-height: 0;
     overflow: hidden;
     position: relative;
     margin: var(--content-gap);
@@ -442,8 +459,13 @@ header {
 .route-view {
     width: 100%;
     height: 100%;
-    overflow: auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background-color: var(--bg-color);
+    -webkit-overflow-scrolling: touch;
 }
 
 .route-loading,
@@ -479,8 +501,13 @@ footer {
 /* 移动端 */
 .mobile-menu-btn {
     display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
+    border-radius: var(--radius);
     font-size: 1.5rem;
     color: var(--text-primary);
     cursor: pointer;
@@ -521,7 +548,7 @@ footer {
 }
 
 /* 响应式 */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
     .sidebar {
         position: fixed;
         top: 0;
@@ -535,7 +562,7 @@ footer {
     }
 
     .mobile-menu-btn {
-        display: block;
+        display: inline-flex;
     }
 
     .content-wrapper {
@@ -556,6 +583,15 @@ footer {
     /* 平板触摸目标最小高度 */
     .btn {
         min-height: 2.75rem;
+    }
+
+    .btn-icon,
+    .pagination-btn {
+        width: 2.75rem;
+        min-width: 2.75rem;
+        height: 2.75rem;
+        min-height: 2.75rem;
+        flex-shrink: 0;
     }
 
     .nav-link {
@@ -588,6 +624,9 @@ footer {
     }
 
     .user-info {
+        min-width: 2.75rem;
+        min-height: 2.75rem;
+        justify-content: center;
         padding: 0.4rem 0.5rem;
     }
 
@@ -665,13 +704,13 @@ footer {
 /* ===== 通用 Modal 样式（供主框架使用）===== */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     background-color: rgba(0,0,0,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    padding: 1rem;
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s;
@@ -688,7 +727,8 @@ footer {
     border-radius: var(--radius, 8px);
     box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
     width: 100%;
-    max-height: 90vh;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
     overflow: hidden;
     transform: translateY(20px);
     transition: transform 0.3s;
@@ -708,8 +748,11 @@ footer {
     color: var(--text-primary);
 }
 .modal-close {
+    width: 2.75rem;
+    height: 2.75rem;
     background: none;
     border: none;
+    border-radius: var(--radius);
     font-size: 1.5rem;
     color: var(--text-secondary);
     cursor: pointer;
@@ -719,7 +762,9 @@ footer {
 .modal-body {
     padding: 1.5rem;
     flex: 1;
-    overflow: hidden;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
@@ -728,8 +773,9 @@ footer {
     border: 1px solid var(--border-color);
     border-radius: var(--radius, 8px);
     padding: 1.25rem;
-    overflow-y: auto;
-    max-height: 350px;
+    min-height: 0;
+    overflow: visible;
+    max-height: none;
 }
 .modal-footer {
     padding: 0 1.5rem 1.5rem;
@@ -767,4 +813,103 @@ footer {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.progress-toast {
+    display: none;
+    position: fixed;
+    right: max(1.5rem, env(safe-area-inset-right));
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+    align-items: center;
+    gap: 0.75rem;
+    width: max-content;
+    min-width: 12.5rem;
+    max-width: min(24rem, calc(100vw - 2rem));
+    padding: 0.75rem 1.125rem;
+    background: var(--card-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.13);
+    z-index: 9999;
+}
+
+.progress-toast > svg {
+    flex-shrink: 0;
+    transform: rotate(-90deg);
+}
+
+.progress-toast-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    overflow-wrap: anywhere;
+}
+
+.progress-toast-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+}
+
+.progress-toast-cancel {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    background: #fef2f2;
+    border-radius: var(--radius);
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .modal-overlay {
+        align-items: flex-start;
+        padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+
+    .modal-header,
+    .modal-body {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .modal-footer {
+        padding: 0 1rem 1rem;
+        flex-wrap: wrap;
+    }
+
+    .modal-footer .btn {
+        min-height: 2.75rem;
+        flex: 1 1 8rem;
+        justify-content: center;
+    }
+
+    .form-scroll-box {
+        padding: 1rem;
+    }
+
+    .progress-toast {
+        left: max(0.75rem, env(safe-area-inset-left));
+        right: max(0.75rem, env(safe-area-inset-right));
+        bottom: max(0.75rem, env(safe-area-inset-bottom));
+        width: auto;
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

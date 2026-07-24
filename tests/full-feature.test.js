@@ -113,8 +113,19 @@ async function waitForServer(baseUrl, child) {
             throw new Error(`server exited early with code ${child.exitCode}`);
         }
         try {
-            const res = await fetch(baseUrl + '/login.html');
-            if (res.ok) return;
+            const page = await fetch(baseUrl + '/login.html');
+            if (page.ok) {
+                // The HTTP listener can be ready before asynchronous database seeding.
+                // Probe the seeded admin account so the first auth test is deterministic.
+                const auth = await request(baseUrl, 'POST', '/api/login', null, {
+                    username: roleUsers.admin.username,
+                    password: roleUsers.admin.password
+                });
+                if (auth.status === 200) {
+                    await request(baseUrl, 'POST', '/api/logout', auth.body.data.token);
+                    return;
+                }
+            }
         } catch (e) {
             // keep polling
         }
@@ -786,13 +797,20 @@ async function waitForPageCondition(client, expression, label) {
     throw new Error(`${label} did not become ready: ${JSON.stringify(last)}`);
 }
 
+let browserNavigationId = 0;
+
 async function navigateRoute(client, baseUrl, route) {
-    await client.send('Page.navigate', { url: `${baseUrl}/index.html#${route}` });
+    // A unique query makes every route visit a real navigation. Checking it in the
+    // readiness predicate prevents a previous document with readyState=complete from
+    // satisfying the wait before the new navigation commits.
+    const navigationId = String(++browserNavigationId);
+    await client.send('Page.navigate', { url: `${baseUrl}/index.html?testNav=${navigationId}#${route}` });
     await waitForPageLoad(client);
     return waitForPageCondition(client, `(() => {
         const view = document.getElementById('routeView');
         return {
-            ok: !!document.querySelector('#routeView .page-content') &&
+            ok: new URLSearchParams(location.search).get('testNav') === ${JSON.stringify(navigationId)} &&
+                !!document.querySelector('#routeView .page-content') &&
                 !document.querySelector('.route-error') &&
                 !document.querySelector('.route-loading') &&
                 ((view && view.innerText || '').trim().length > 0),
@@ -810,6 +828,42 @@ async function setBrowserUser(client, userData) {
         localStorage.setItem('firmwareLang', 'zh');
         return true;
     })()`);
+}
+
+async function waitForResponsiveLayout(client) {
+    await pageEval(client, `new Promise(resolve => requestAnimationFrame(() =>
+        requestAnimationFrame(() => resolve(true))))`);
+}
+
+async function setViewport(client, {
+    width,
+    height,
+    deviceScaleFactor = 1,
+    mobile = false,
+    touch = false,
+    orientation = height >= width ? 'portraitPrimary' : 'landscapePrimary'
+}) {
+    const angle = orientation.startsWith('landscape') ? 90 : 0;
+    await client.send('Emulation.setDeviceMetricsOverride', {
+        width,
+        height,
+        deviceScaleFactor,
+        mobile,
+        screenWidth: width,
+        screenHeight: height,
+        screenOrientation: { type: orientation, angle }
+    });
+    await client.send('Emulation.setTouchEmulationEnabled', {
+        enabled: touch,
+        maxTouchPoints: touch ? 5 : 1
+    });
+    await waitForResponsiveLayout(client);
+}
+
+async function resetViewport(client) {
+    await client.send('Emulation.setTouchEmulationEnabled', { enabled: false });
+    await client.send('Emulation.clearDeviceMetricsOverride');
+    await waitForResponsiveLayout(client);
 }
 
 async function withBrowser(baseUrl, fn) {
@@ -978,6 +1032,440 @@ async function runFrontendRouteAndPermissionTests(baseUrl) {
     });
 }
 
+async function runResponsiveFrontendTests(baseUrl) {
+    const routes = [
+        'dashboard',
+        'firmware-list',
+        'firmware-release',
+        'module-management',
+        'project-management',
+        'user-management',
+        'settings'
+    ];
+    const managementRoutes = [
+        ['firmware-list', '#firmwareListTable'],
+        ['module-management', '#moduleListTable'],
+        ['project-management', '#projectListTable'],
+        ['user-management', '#userListTable']
+    ];
+
+    await withBrowser(baseUrl, async (client) => {
+        try {
+            await setBrowserUser(client, roleUsers.admin.data);
+
+            // Keep route coverage representative rather than multiplying every route by
+            // every breakpoint. Each route still proves the shell scroll contract at a
+            // desktop and a narrow touch viewport.
+            for (const viewport of [
+                { width: 1366, height: 768, label: 'desktop' },
+                { width: 390, height: 844, touch: true, label: 'phone' }
+            ]) {
+                await setViewport(client, viewport);
+                for (const route of routes) {
+                    await navigateRoute(client, baseUrl, route);
+                    const layout = await pageEval(client, `(() => {
+                        const view = document.getElementById('routeView');
+                        const page = view && view.querySelector('.page-content');
+                        const viewStyle = view && getComputedStyle(view);
+                        const contentStyle = getComputedStyle(document.getElementById('contentArea'));
+                        const pageRect = page && page.getBoundingClientRect();
+                        const viewRect = view && view.getBoundingClientRect();
+                        view.scrollTop = Math.min(80, Math.max(0, view.scrollHeight - view.clientHeight));
+                        return {
+                            pageCount: view ? view.querySelectorAll(':scope > .page-content').length : 0,
+                            documentOverflow: document.documentElement.scrollWidth - innerWidth,
+                            documentScrollTop: document.scrollingElement.scrollTop,
+                            bodyOverflow: getComputedStyle(document.body).overflow,
+                            contentOverflow: contentStyle.overflow,
+                            viewOverflowX: viewStyle && viewStyle.overflowX,
+                            viewOverflowY: viewStyle && viewStyle.overflowY,
+                            viewHeight: view && view.getBoundingClientRect().height,
+                            viewClientHeight: view && view.clientHeight,
+                            pageInsideView: !!pageRect && !!viewRect &&
+                                pageRect.left >= viewRect.left - 1 && pageRect.right <= viewRect.right + 1,
+                            viewScrolledWhenPossible: !view || view.scrollHeight <= view.clientHeight || view.scrollTop > 0
+                        };
+                    })()`);
+                    assert.strictEqual(layout.pageCount, 1, `${viewport.label} ${route} route page count`);
+                    assert.ok(layout.documentOverflow <= 1, `${viewport.label} ${route} horizontal document overflow`);
+                    assert.strictEqual(layout.documentScrollTop, 0, `${viewport.label} ${route} document must not scroll`);
+                    assert.strictEqual(layout.bodyOverflow, 'hidden', `${viewport.label} ${route} body overflow`);
+                    assert.strictEqual(layout.contentOverflow, 'hidden', `${viewport.label} ${route} content overflow`);
+                    assert.strictEqual(layout.viewOverflowX, 'hidden', `${viewport.label} ${route} routeView overflow-x`);
+                    assert.strictEqual(layout.viewOverflowY, 'auto', `${viewport.label} ${route} routeView overflow-y`);
+                    assert.ok(Math.abs(layout.viewHeight - layout.viewClientHeight) <= 1,
+                        `${viewport.label} ${route} routeView height`);
+                    assert.ok(layout.pageInsideView, `${viewport.label} ${route} page must stay inside routeView`);
+                    assert.ok(layout.viewScrolledWhenPossible, `${viewport.label} ${route} routeView must own scrolling`);
+                }
+            }
+
+            // The navigation drawer changes mode exactly at 1200 CSS pixels.
+            await setViewport(client, { width: 1201, height: 800 });
+            await navigateRoute(client, baseUrl, 'dashboard');
+            let sidebar = await pageEval(client, `(() => {
+                const nav = document.getElementById('sidebar');
+                const button = document.getElementById('mobileMenuBtn');
+                return {
+                    position: getComputedStyle(nav).position,
+                    transform: getComputedStyle(nav).transform,
+                    buttonDisplay: getComputedStyle(button).display
+                };
+            })()`);
+            assert.notStrictEqual(sidebar.position, 'fixed', '1201px sidebar should be in desktop flow');
+            assert.strictEqual(sidebar.transform, 'none', '1201px sidebar transform');
+            assert.strictEqual(sidebar.buttonDisplay, 'none', '1201px menu button');
+
+            await setViewport(client, { width: 1200, height: 800, touch: true });
+            sidebar = await pageEval(client, `(() => {
+                const nav = document.getElementById('sidebar');
+                const button = document.getElementById('mobileMenuBtn');
+                const rect = button.getBoundingClientRect();
+                return {
+                    position: getComputedStyle(nav).position,
+                    buttonDisplay: getComputedStyle(button).display,
+                    expanded: button.getAttribute('aria-expanded'),
+                    touchWidth: rect.width,
+                    touchHeight: rect.height
+                };
+            })()`);
+            assert.strictEqual(sidebar.position, 'fixed', '1200px sidebar should be off canvas');
+            assert.ok(sidebar.buttonDisplay === 'flex' || sidebar.buttonDisplay === 'inline-flex',
+                '1200px menu button');
+            assert.strictEqual(sidebar.expanded, 'false', 'closed drawer aria state');
+            assert.ok(sidebar.touchWidth >= 44 && sidebar.touchHeight >= 44, 'menu touch target');
+            await pageEval(client, `document.getElementById('mobileMenuBtn').click()`);
+            let drawer = await waitForPageCondition(client, `(() => {
+                const nav = document.getElementById('sidebar');
+                const overlay = document.getElementById('mobileOverlay');
+                const state = {
+                    navActive: nav.classList.contains('active'),
+                    overlayActive: overlay.classList.contains('active'),
+                    expanded: document.getElementById('mobileMenuBtn').getAttribute('aria-expanded'),
+                    left: nav.getBoundingClientRect().left
+                };
+                return { ok: state.navActive && state.overlayActive && Math.abs(state.left) <= 1, ...state };
+            })()`, 'open mobile drawer');
+            assert.ok(drawer.navActive && drawer.overlayActive, 'mobile drawer and overlay should open');
+            assert.strictEqual(drawer.expanded, 'true', 'open drawer aria state');
+            assert.ok(Math.abs(drawer.left) <= 1, 'open drawer must align to viewport');
+            drawer = await pageEval(client, `(() => {
+                document.getElementById('mobileOverlay').click();
+                return {
+                    navActive: document.getElementById('sidebar').classList.contains('active'),
+                    overlayActive: document.getElementById('mobileOverlay').classList.contains('active'),
+                    expanded: document.getElementById('mobileMenuBtn').getAttribute('aria-expanded')
+                };
+            })()`);
+            assert.ok(!drawer.navActive && !drawer.overlayActive, 'overlay should close mobile drawer');
+            assert.strictEqual(drawer.expanded, 'false', 'closed drawer aria state after overlay click');
+
+            // Management pages switch from a table at 901px to labelled cards at 900px.
+            for (const [route, tableSelector] of managementRoutes) {
+                await setViewport(client, { width: 901, height: 800 });
+                await navigateRoute(client, baseUrl, route);
+                await waitForPageCondition(client, `(() => ({
+                    ok: document.querySelectorAll('${tableSelector} tr').length > 0
+                }))()`, `${route} 901px rows`);
+                let table = await pageEval(client, `(() => {
+                    const body = document.querySelector('${tableSelector}');
+                    const view = document.getElementById('routeView');
+                    const page = body.closest('.management-page');
+                    const controls = Array.from(document.querySelectorAll('.btn-icon, .pagination-btn'))
+                        .filter(control => control.getClientRects().length > 0);
+                    view.scrollTop = view.scrollHeight;
+                    return {
+                        headDisplay: getComputedStyle(body.closest('table').tHead).display,
+                        rowDisplay: getComputedStyle(body.querySelector('tr')).display,
+                        pageOverflow: getComputedStyle(page).overflow,
+                        routeCanReachBottom: view.scrollHeight <= view.clientHeight ||
+                            Math.abs(view.scrollTop + view.clientHeight - view.scrollHeight) <= 1,
+                        touchTargets: controls.map(control => {
+                            const rect = control.getBoundingClientRect();
+                            return { width: rect.width, height: rect.height };
+                        })
+                    };
+                })()`);
+                assert.notStrictEqual(table.headDisplay, 'none', `${route} header at 901px`);
+                assert.notStrictEqual(table.rowDisplay, 'block', `${route} row at 901px`);
+                assert.strictEqual(table.pageOverflow, 'visible', `${route} page overflow at 901px`);
+                assert.ok(table.routeCanReachBottom, `${route} route must reach table bottom at 901px`);
+                assert.ok(table.touchTargets.every(target => target.width >= 44 && target.height >= 44),
+                    `${route} tablet touch targets at 901px: ${JSON.stringify(table.touchTargets)}`);
+
+                await setViewport(client, { width: 900, height: 800, touch: true });
+                await waitForResponsiveLayout(client);
+                table = await pageEval(client, `(() => {
+                    const body = document.querySelector('${tableSelector}');
+                    const tableContainer = body.closest('.table-container');
+                    const row = body.querySelector('tr');
+                    const cells = Array.from(row.querySelectorAll('td:not([colspan])'));
+                    const ordinaryCell = cells.find(cell => !cell.classList.contains('actions')) || cells[0];
+                    const page = body.closest('.management-page');
+                    const card = page.querySelector('.card');
+                    return {
+                        headDisplay: getComputedStyle(body.closest('table').tHead).display,
+                        rowDisplay: getComputedStyle(row).display,
+                        cellDisplay: ordinaryCell && getComputedStyle(ordinaryCell).display,
+                        labels: cells.map(cell => cell.dataset.label || ''),
+                        whiteSpace: ordinaryCell && getComputedStyle(ordinaryCell).whiteSpace,
+                        overflowWrap: ordinaryCell && getComputedStyle(ordinaryCell).overflowWrap,
+                        horizontalScroll: tableContainer.scrollWidth - tableContainer.clientWidth,
+                        pageOverflow: getComputedStyle(page).overflow,
+                        cardOverflow: getComputedStyle(card).overflow,
+                        rowRight: row.getBoundingClientRect().right,
+                        viewRight: document.getElementById('routeView').getBoundingClientRect().right
+                    };
+                })()`);
+                assert.strictEqual(table.headDisplay, 'none', `${route} header at 900px`);
+                assert.strictEqual(table.rowDisplay, 'block', `${route} card row at 900px`);
+                assert.strictEqual(table.cellDisplay, 'flex', `${route} card cell at 900px`);
+                assert.ok(table.labels.length > 0 && table.labels.every(Boolean), `${route} data-label cells`);
+                assert.strictEqual(table.whiteSpace, 'normal', `${route} card value wrapping`);
+                assert.strictEqual(table.overflowWrap, 'anywhere', `${route} overflow wrapping`);
+                assert.ok(table.horizontalScroll <= 1, `${route} card table horizontal overflow`);
+                assert.strictEqual(table.pageOverflow, 'visible', `${route} page scroll delegation`);
+                assert.strictEqual(table.cardOverflow, 'visible', `${route} card scroll delegation`);
+                assert.ok(table.rowRight <= table.viewRight + 1, `${route} card bounds`);
+            }
+
+            // Dashboard grid bands and semantic activity layout, including DPR-aware
+            // canvas backing stores after a resize.
+            await setViewport(client, { width: 1366, height: 900, deviceScaleFactor: 2 });
+            await navigateRoute(client, baseUrl, 'dashboard');
+            await waitForPageCondition(client, `(() => ({
+                ok: document.querySelectorAll('#activityList .activity-row').length > 0 &&
+                    Array.from(document.querySelectorAll('.charts-grid canvas')).every(canvas => canvas.width > 0)
+            }))()`, 'desktop DPR2 dashboard');
+            let dashboard = await pageEval(client, `(() => {
+                const columnCount = selector => getComputedStyle(document.querySelector(selector))
+                    .gridTemplateColumns.split(/\\s+/).filter(Boolean).length;
+                const canvases = Array.from(document.querySelectorAll('.charts-grid canvas')).map(canvas => {
+                    const rect = canvas.getBoundingClientRect();
+                    return { width: canvas.width, height: canvas.height, cssWidth: rect.width, cssHeight: rect.height };
+                });
+                const rows = Array.from(document.querySelectorAll('#activityList .activity-row'));
+                return {
+                    statsColumns: columnCount('.stats-grid'),
+                    chartColumns: columnCount('.charts-grid'),
+                    canvases,
+                    activitySemantic: rows.every(row => row.children.length === 3 &&
+                        row.children[0].matches('span.activity-time') &&
+                        row.children[1].matches('span.activity-action') &&
+                        row.children[2].matches('span.activity-actor')),
+                    activityColumns: getComputedStyle(rows[0]).gridTemplateColumns.split(/\\s+/).filter(Boolean).length
+                };
+            })()`);
+            assert.strictEqual(dashboard.statsColumns, 6, 'desktop dashboard stats columns');
+            assert.strictEqual(dashboard.chartColumns, 4, 'desktop dashboard chart columns');
+            assert.ok(dashboard.activitySemantic, 'dashboard activity should use three semantic spans');
+            assert.strictEqual(dashboard.activityColumns, 3, 'desktop activity columns');
+            for (const canvas of dashboard.canvases) {
+                assert.ok(Math.abs(canvas.width - Math.round(canvas.cssWidth * 2)) <= 1, 'DPR2 canvas width');
+                assert.ok(Math.abs(canvas.height - Math.round(canvas.cssHeight * 2)) <= 1, 'DPR2 canvas height');
+            }
+
+            await setViewport(client, { width: 900, height: 800, deviceScaleFactor: 2, touch: true });
+            await waitForPageCondition(client, `(() => {
+                const canvas = document.getElementById('chartPending');
+                const rect = canvas.getBoundingClientRect();
+                return { ok: Math.abs(canvas.width - Math.round(rect.width * 2)) <= 1 };
+            })()`, 'resized DPR2 dashboard');
+            dashboard = await pageEval(client, `(() => ({
+                statsColumns: getComputedStyle(document.querySelector('.stats-grid')).gridTemplateColumns.split(/\\s+/).length,
+                chartColumns: getComputedStyle(document.querySelector('.charts-grid')).gridTemplateColumns.split(/\\s+/).length
+            }))()`);
+            assert.strictEqual(dashboard.statsColumns, 3, 'tablet dashboard stats columns');
+            assert.strictEqual(dashboard.chartColumns, 2, 'tablet dashboard chart columns');
+
+            await setViewport(client, { width: 390, height: 844, deviceScaleFactor: 2, touch: true });
+            await waitForResponsiveLayout(client);
+            dashboard = await pageEval(client, `(() => {
+                const row = document.querySelector('#activityList .activity-row');
+                const time = row.querySelector('.activity-time');
+                const action = row.querySelector('.activity-action');
+                const actor = row.querySelector('.activity-actor');
+                const rowRect = row.getBoundingClientRect();
+                return {
+                    statsColumns: getComputedStyle(document.querySelector('.stats-grid')).gridTemplateColumns.split(/\\s+/).length,
+                    chartColumns: getComputedStyle(document.querySelector('.charts-grid')).gridTemplateColumns.split(/\\s+/).length,
+                    activityColumns: getComputedStyle(row).gridTemplateColumns.split(/\\s+/).length,
+                    timeColumn: getComputedStyle(time).gridColumnStart,
+                    timeRow: getComputedStyle(time).gridRowStart,
+                    actionColumn: getComputedStyle(action).gridColumnStart,
+                    actorColumn: getComputedStyle(actor).gridColumnStart,
+                    actorRow: getComputedStyle(actor).gridRowStart,
+                    actionInside: action.getBoundingClientRect().right <= rowRect.right + 1,
+                    actionWrap: getComputedStyle(action).overflowWrap
+                };
+            })()`);
+            assert.strictEqual(dashboard.statsColumns, 2, 'phone dashboard stats columns');
+            assert.strictEqual(dashboard.chartColumns, 1, 'phone dashboard chart columns');
+            assert.strictEqual(dashboard.activityColumns, 2, 'phone activity columns');
+            assert.strictEqual(dashboard.timeColumn, '2', 'phone activity time column');
+            assert.strictEqual(dashboard.timeRow, '1', 'phone activity time row');
+            assert.strictEqual(dashboard.actionColumn, '1', 'phone activity action column');
+            assert.strictEqual(dashboard.actorColumn, '2', 'phone activity actor column');
+            assert.strictEqual(dashboard.actorRow, '2', 'phone activity actor row');
+            assert.ok(dashboard.actionInside, 'phone activity action bounds');
+            assert.strictEqual(dashboard.actionWrap, 'anywhere', 'phone activity action wrapping');
+
+            // Mobile header dropdown must remain visible and contained.
+            const dropdown = await pageEval(client, `(() => {
+                const trigger = document.getElementById('userDropdownTrigger');
+                trigger.click();
+                const menu = document.getElementById('userDropdownMenu');
+                const rect = menu.getBoundingClientRect();
+                const triggerRect = trigger.getBoundingClientRect();
+                return {
+                    active: menu.classList.contains('active'),
+                    display: getComputedStyle(menu).display,
+                    left: rect.left,
+                    right: rect.right,
+                    triggerWidth: triggerRect.width,
+                    triggerHeight: triggerRect.height,
+                    nameDisplay: getComputedStyle(document.querySelector('.user-name')).display,
+                    roleDisplay: getComputedStyle(document.querySelector('.user-role')).display
+                };
+            })()`);
+            assert.ok(dropdown.active && dropdown.display === 'block', 'mobile user dropdown should open');
+            assert.ok(dropdown.left >= -1 && dropdown.right <= 391, 'mobile dropdown bounds');
+            assert.ok(dropdown.triggerWidth >= 44 && dropdown.triggerHeight >= 44, 'user dropdown touch target');
+            assert.strictEqual(dropdown.nameDisplay, 'none', 'mobile username visibility');
+            assert.strictEqual(dropdown.roleDisplay, 'none', 'mobile role visibility');
+            await pageEval(client, `document.body.click()`);
+
+            // Use the longest seeded admin modal to exercise short-height bounds and
+            // touch targets without introducing test-only data.
+            await navigateRoute(client, baseUrl, 'user-management');
+            await waitForPageCondition(client, `(() => ({ ok: !!document.getElementById('addUserBtn') }))()`, 'user modal trigger');
+            await pageEval(client, `document.getElementById('addUserBtn').click()`);
+            await waitForPageCondition(client, `(() => {
+                const overlay = document.getElementById('userModal');
+                return { ok: !overlay.hidden && overlay.classList.contains('active') };
+            })()`, 'user modal');
+            const modal = await pageEval(client, `(() => {
+                const overlay = document.getElementById('userModal');
+                const dialog = overlay.querySelector('.modal');
+                const body = overlay.querySelector('.modal-body');
+                const scrollBox = overlay.querySelector('.form-scroll-box');
+                const close = overlay.querySelector('.modal-close');
+                const buttons = Array.from(overlay.querySelectorAll('.modal-footer .btn'));
+                const rect = dialog.getBoundingClientRect();
+                const closeRect = close.getBoundingClientRect();
+                return {
+                    top: rect.top,
+                    left: rect.left,
+                    right: rect.right,
+                    bottom: rect.bottom,
+                    dialogOverflow: getComputedStyle(dialog).overflow,
+                    bodyOverflowY: getComputedStyle(body).overflowY,
+                    scrollBoxMaxHeight: getComputedStyle(scrollBox).maxHeight,
+                    scrollBoxOverflow: getComputedStyle(scrollBox).overflow,
+                    closeWidth: closeRect.width,
+                    closeHeight: closeRect.height,
+                    buttonHeights: buttons.map(button => button.getBoundingClientRect().height)
+                };
+            })()`);
+            assert.ok(modal.top >= -1 && modal.left >= -1 && modal.right <= 391 && modal.bottom <= 845,
+                'mobile modal bounds');
+            assert.strictEqual(modal.dialogOverflow, 'hidden', 'modal clips only its shell');
+            assert.strictEqual(modal.bodyOverflowY, 'auto', 'modal body scroll owner');
+            assert.strictEqual(modal.scrollBoxMaxHeight, 'none', 'modal form should not have a fixed height cap');
+            assert.strictEqual(modal.scrollBoxOverflow, 'visible', 'modal form should delegate scrolling');
+            assert.ok(modal.closeWidth >= 44 && modal.closeHeight >= 44, 'modal close touch target');
+            assert.ok(modal.buttonHeights.length > 0 && modal.buttonHeights.every(height => height >= 44),
+                'modal footer touch targets');
+            await pageEval(client, `document.getElementById('closeUserModal').click()`);
+
+            // A landscape handset is a separate short-height case.
+            await setViewport(client, {
+                width: 844,
+                height: 390,
+                deviceScaleFactor: 2,
+                touch: true,
+                orientation: 'landscapePrimary'
+            });
+            await navigateRoute(client, baseUrl, 'settings');
+            const landscape = await pageEval(client, `(() => ({
+                orientation: matchMedia('(orientation: landscape)').matches,
+                overflow: document.documentElement.scrollWidth - innerWidth,
+                menuVisible: getComputedStyle(document.getElementById('mobileMenuBtn')).display !== 'none',
+                routeOverflowY: getComputedStyle(document.getElementById('routeView')).overflowY
+            }))()`);
+            assert.ok(landscape.orientation, 'landscape phone orientation');
+            assert.ok(landscape.overflow <= 1, 'landscape phone horizontal overflow');
+            assert.ok(landscape.menuVisible, 'landscape phone mobile navigation');
+            assert.strictEqual(landscape.routeOverflowY, 'auto', 'landscape phone route scroll owner');
+
+            // Login remains zoomable, scrollable on short phones, and touch friendly.
+            await setViewport(client, {
+                width: 390,
+                height: 500,
+                deviceScaleFactor: 2,
+                mobile: true,
+                touch: true,
+                orientation: 'portraitPrimary'
+            });
+            await client.send('Page.navigate', { url: `${baseUrl}/login.html` });
+            await waitForPageLoad(client);
+            await waitForResponsiveLayout(client);
+            let loginLayout = await pageEval(client, `(() => {
+                const meta = document.querySelector('meta[name="viewport"]').content;
+                const card = document.querySelector('.login-card').getBoundingClientRect();
+                const containerStyle = getComputedStyle(document.querySelector('.login-container'));
+                const targetSelectors = ['#loginLangToggle .login-lang-opt', '#username', '#password', '.toggle-password', '#loginBtn'];
+                const targets = targetSelectors.flatMap(selector => Array.from(document.querySelectorAll(selector)))
+                    .map(element => {
+                        const rect = element.getBoundingClientRect();
+                        return { selector: element.id || element.className, width: rect.width, height: rect.height };
+                    });
+                return {
+                    meta,
+                    cardLeft: card.left,
+                    cardRight: card.right,
+                    cardRadius: getComputedStyle(document.querySelector('.login-card')).borderRadius,
+                    containerAlign: containerStyle.alignItems,
+                    documentOverflow: document.documentElement.scrollWidth - innerWidth,
+                    targets
+                };
+            })()`);
+            assert.ok(loginLayout.meta.includes('width=device-width') && loginLayout.meta.includes('initial-scale=1.0'),
+                'login viewport basics');
+            assert.ok(loginLayout.meta.includes('viewport-fit=cover'), 'login safe-area viewport');
+            assert.ok(!/user-scalable\s*=\s*no|maximum-scale\s*=\s*1(?:\D|$)/i.test(loginLayout.meta),
+                'login must allow zoom');
+            assert.ok(loginLayout.cardLeft >= -1 && loginLayout.cardRight <= 391, 'login card bounds');
+            assert.strictEqual(loginLayout.cardRadius, '12px', 'phone login card radius');
+            assert.strictEqual(loginLayout.containerAlign, 'flex-start', 'short phone login alignment');
+            assert.ok(loginLayout.documentOverflow <= 1, 'login horizontal overflow');
+            assert.ok(loginLayout.targets.length > 0 && loginLayout.targets.every(target =>
+                target.height >= 44 && (target.selector.includes('toggle-password') ? target.width >= 44 : true)),
+            'login touch targets');
+
+            loginLayout = await pageEval(client, `(() => {
+                showMessage('A-very-long-unbroken-responsive-login-message-'.repeat(10), 'info');
+                const message = document.querySelector('.message');
+                const rect = message.getBoundingClientRect();
+                const style = getComputedStyle(message);
+                return {
+                    left: rect.left,
+                    right: rect.right,
+                    width: rect.width,
+                    whiteSpace: style.whiteSpace,
+                    overflowWrap: style.overflowWrap
+                };
+            })()`);
+            assert.ok(loginLayout.left >= -1 && loginLayout.right <= 391 && loginLayout.width <= 358,
+                'login message bounds');
+            assert.strictEqual(loginLayout.whiteSpace, 'normal', 'login message whitespace');
+            assert.strictEqual(loginLayout.overflowWrap, 'anywhere', 'login message wrapping');
+        } finally {
+            await resetViewport(client);
+        }
+    });
+}
+
 async function main() {
     const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'xfms-full-api-test-'));
     const port = 4100 + Math.floor(Math.random() * 1000);
@@ -1021,6 +1509,7 @@ async function main() {
         await runStep('firmware files downloads and activity logs', () => runFirmwareFileAndActivityTests(baseUrl, tokens, seeded));
         await runStep('tester firmware restrictions', () => runTesterFirmwareRestrictions(baseUrl, tokens, seeded));
         await runStep('frontend routes and permission UI', () => runFrontendRouteAndPermissionTests(baseUrl));
+        await runStep('responsive frontend layouts', () => runResponsiveFrontendTests(baseUrl));
 
         console.log('full feature tests passed');
     } catch (err) {

@@ -15,7 +15,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>X-固件管理系统 - 登录 | 现代科技风</title>
     <!-- 独立样式表：已完全重构样式，不依赖外部common.css，无新增JS -->
     <link rel="stylesheet" href="login.css">
@@ -26,9 +26,9 @@
 <body>
     <!-- 语言切换 -->
     <div class="login-lang-toggle" id="loginLangToggle">
-        <span class="login-lang-opt active" data-lang="zh">中文</span>
-        <span class="login-lang-sep">|</span>
-        <span class="login-lang-opt" data-lang="en">English</span>
+        <button type="button" class="login-lang-opt active" data-lang="zh">中文</button>
+        <span class="login-lang-sep" aria-hidden="true">|</span>
+        <button type="button" class="login-lang-opt" data-lang="en">English</button>
     </div>
     
     <div class="login-container">

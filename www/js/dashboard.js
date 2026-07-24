@@ -16,6 +16,11 @@
     let currentLang = localStorage.getItem('firmwareLang') || 'zh';
     let _loginCount = 0;
     let refreshTimer = null;
+    let chartResizeObserver = null;
+    let chartResizeHandler = null;
+    let chartAnimationFrame = null;
+    let chartData = [];
+    let lifecycleId = 0;
 
     // 每个状态对应的颜色列表（模块切片用）
     const SLICE_COLORS = [
@@ -24,18 +29,21 @@
     ];
 
     async function init() {
+        destroy();
+        const initId = lifecycleId;
         currentLang = localStorage.getItem('firmwareLang') || 'zh';
         applyLanguage(currentLang);
         const [, statsData] = await Promise.all([
             DataManager.loadData(),
             API.settings.get().catch(() => ({}))
         ]);
+        if (initId !== lifecycleId) return;
         _loginCount = parseInt((statsData || {}).loginCount) || 0;
         updateStats();
         renderCharts();
-        loadActivityLogs();
-        if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(() => { try { loadActivityLogs(); } catch(e) {} }, 30000);
+        setupChartResize();
+        loadActivityLogs(initId);
+        refreshTimer = setInterval(() => { loadActivityLogs(initId); }, 30000);
     }
 
     function updateStats() {
@@ -58,8 +66,22 @@
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const W = canvas.width;
-        const H = canvas.height;
+        if (!ctx) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const W = rect.width;
+        const H = rect.height;
+        if (!W || !H) return;
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const pixelWidth = Math.max(1, Math.round(W * dpr));
+        const pixelHeight = Math.max(1, Math.round(H * dpr));
+        if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+            canvas.width = pixelWidth;
+            canvas.height = pixelHeight;
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
         const cx = W / 2;
         const cy = H / 2;
         const r     = Math.min(W, H) * 0.28;
@@ -184,21 +206,53 @@
         const canvasIds = ['chartPending', 'chartTested', 'chartActivated', 'chartDeprecated'];
         const legendIds = ['legendPending', 'legendTested', 'legendActivated', 'legendDeprecated'];
 
-        statuses.forEach((status, idx) => {
+        chartData = statuses.map((status, idx) => {
             // 统计该状态下各模块的固件数量
             const countMap = {};
             firmware.filter(f => f.status === status).forEach(f => {
                 const name = f.moduleName || '未知模块';
                 countMap[name] = (countMap[name] || 0) + 1;
             });
-            const slices = Object.entries(countMap)
-                .map(([name, count]) => ({ name, count }))
-                .sort((a, b) => b.count - a.count);
-            drawPieChart(canvasIds[idx], legendIds[idx], slices);
+            return {
+                canvasId: canvasIds[idx],
+                legendId: legendIds[idx],
+                slices: Object.entries(countMap)
+                    .map(([name, count]) => ({ name, count }))
+                    .sort((a, b) => b.count - a.count)
+            };
+        });
+
+        chartData.forEach(chart => {
+            drawPieChart(chart.canvasId, chart.legendId, chart.slices);
         });
     }
 
-    async function loadActivityLogs() {
+    function scheduleChartResize() {
+        if (chartAnimationFrame !== null) return;
+        chartAnimationFrame = requestAnimationFrame(() => {
+            chartAnimationFrame = null;
+            chartData.forEach(chart => {
+                drawPieChart(chart.canvasId, chart.legendId, chart.slices);
+            });
+        });
+    }
+
+    function setupChartResize() {
+        const canvases = chartData
+            .map(chart => document.getElementById(chart.canvasId))
+            .filter(Boolean);
+        if (!canvases.length) return;
+
+        if (typeof ResizeObserver === 'function') {
+            chartResizeObserver = new ResizeObserver(scheduleChartResize);
+            canvases.forEach(canvas => chartResizeObserver.observe(canvas));
+        } else {
+            chartResizeHandler = scheduleChartResize;
+            window.addEventListener('resize', chartResizeHandler);
+        }
+    }
+
+    async function loadActivityLogs(requestLifecycleId = lifecycleId) {
         try {
             const rows = await API.activity.recent(20);
             const container = document.getElementById('activityList');
@@ -209,23 +263,34 @@
                 modify: trans.activityModify || (currentLang==='en'?'Modify':'修改'),
                 delete: trans.activityDelete || (currentLang==='en'?'Delete':'删除')
             };
-            if (!container) return;
+            if (!container || requestLifecycleId !== lifecycleId) return;
             container.innerHTML = '';
-                (rows || []).forEach(r => {
-                    const time = new Date(r.created_at).toISOString().slice(0, 19).replace('T', ' ');
-                    const actor = r.actor_name || '-';
-                    const action = actionMap[r.action] || r.action;
-                    const parts = [];
-                    if (r.project_name) parts.push(r.project_name);
-                    if (r.module_name) parts.push(r.module_name);
-                    if (r.version) parts.push(r.version);
-                    const target = parts.join(' / ') || (r.firmware_name || '-');
+            (rows || []).forEach(r => {
+                const date = new Date(r.created_at);
+                const time = Number.isNaN(date.getTime())
+                    ? '-'
+                    : date.toISOString().slice(0, 19).replace('T', ' ');
+                const actor = r.actor_name || '-';
+                const action = actionMap[r.action] || r.action || '-';
+                const parts = [];
+                if (r.project_name) parts.push(r.project_name);
+                if (r.module_name) parts.push(r.module_name);
+                if (r.version) parts.push(r.version);
+                const target = parts.join(' / ') || (r.firmware_name || '-');
 
-                    const rowElem = document.createElement('div');
-                    rowElem.className = 'activity-row';
-                    rowElem.textContent = `${time}: ${action} → ${target}${actor ? ' (' + actor + ')' : ''}`;
-
-                    container.appendChild(rowElem);
+                const rowElem = document.createElement('div');
+                const timeElem = document.createElement('span');
+                const actionElem = document.createElement('span');
+                const actorElem = document.createElement('span');
+                rowElem.className = 'activity-row';
+                timeElem.className = 'activity-time';
+                actionElem.className = 'activity-action';
+                actorElem.className = 'activity-actor';
+                timeElem.textContent = `${time}:`;
+                actionElem.textContent = `${action} → ${target}`;
+                actorElem.textContent = `(${actor})`;
+                rowElem.append(timeElem, actionElem, actorElem);
+                container.appendChild(rowElem);
             });
         } catch (e) {
             // ignore
@@ -240,10 +305,24 @@
     }
 
     function destroy() {
+        lifecycleId += 1;
         if (refreshTimer) {
             clearInterval(refreshTimer);
             refreshTimer = null;
         }
+        if (chartResizeObserver) {
+            chartResizeObserver.disconnect();
+            chartResizeObserver = null;
+        }
+        if (chartResizeHandler) {
+            window.removeEventListener('resize', chartResizeHandler);
+            chartResizeHandler = null;
+        }
+        if (chartAnimationFrame !== null) {
+            cancelAnimationFrame(chartAnimationFrame);
+            chartAnimationFrame = null;
+        }
+        chartData = [];
     }
 
     window.XFMSPages = window.XFMSPages || {};

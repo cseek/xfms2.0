@@ -24,10 +24,6 @@ html, body {
     overflow: hidden;
 }
 
-body.router-shell .route-view {
-    overflow: hidden;
-}
-
 .release-wrapper {
     display: flex;
     gap: 1.5rem;
@@ -492,18 +488,24 @@ input[type="checkbox"]+label {
 }
 
 /* 响应式设计 */
-@media (max-width: 1024px) {
-    body { height: auto; overflow-y: auto; }
+@media (max-width: 1200px) {
+    .page-content {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
 
     .card {
         height: auto;
-        min-height: 100vh;
+        overflow: visible;
         padding: 1.25rem;
     }
 
     .release-wrapper {
         flex-direction: column;
         gap: 1.25rem;
+        height: auto;
+        overflow: visible;
     }
 
     .release-main {
@@ -512,6 +514,7 @@ input[type="checkbox"]+label {
 
     .release-sidebar {
         flex: none;
+        overflow: visible;
         padding-left: 0;
         border-left: none;
         border-top: 1px solid var(--border-color);
@@ -552,7 +555,6 @@ input[type="checkbox"]+label {
 }
 
 @media (max-width: 768px) {
-    body { height: auto; overflow-y: auto; }
     .card { height: auto; }
     .page-content {
         padding: 1rem;
@@ -662,6 +664,34 @@ input[type="checkbox"]+label {
         font-size: 0.8rem;
         padding-left: 0;
         text-align: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .upload-icon,
+    .file-info {
+        animation: none;
+    }
+
+    #uploadRingBar {
+        animation: none !important;
+    }
+
+    .upload-area,
+    .btn,
+    .btn-icon,
+    .form-control,
+    #uploadRingBar {
+        transition: none;
+    }
+
+    .upload-area:hover,
+    .upload-area.dragover,
+    .btn:hover,
+    .btn:active,
+    .btn-icon:hover,
+    .btn-icon:active {
+        transform: none;
     }
 }
 

@@ -20,10 +20,6 @@
     box-sizing: border-box;
 }
 
-body.router-shell .route-view {
-    overflow: hidden;
-}
-
 .card {
     background-color: var(--card-color);
     padding: 1.5rem;
@@ -267,10 +263,10 @@ tr:hover {
     padding-left: 12px !important;
 }
 
-.status-border-pending::before,
-.status-border-tested::before,
-.status-border-activated::before,
-.status-border-deprecated::before {
+.status-border-pending::after,
+.status-border-tested::after,
+.status-border-activated::after,
+.status-border-deprecated::after {
     content: '';
     position: absolute;
     left: 0;
@@ -280,10 +276,10 @@ tr:hover {
     border-radius: 2px;
 }
 
-.status-border-pending::before    { background-color: #4b5563; }
-.status-border-tested::before     { background-color: #2563eb; }
-.status-border-activated::before  { background-color: #10b981; }
-.status-border-deprecated::before { background-color: #ef4444; }
+.status-border-pending::after    { background-color: #4b5563; }
+.status-border-tested::after     { background-color: #2563eb; }
+.status-border-activated::after  { background-color: #10b981; }
+.status-border-deprecated::after { background-color: #ef4444; }
 
 .btn-sm {
     padding: 0.2rem 0.55rem;
@@ -494,8 +490,13 @@ textarea.form-control {
 }
 
 /* ── 平板响应式（768px–1024px） ── */
-@media (max-width: 1024px) {
-    body { height: auto; overflow-y: auto; }
+@media (max-width: 1200px) {
+    .page-content {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
     .card {
         height: auto;
         overflow: visible;
@@ -518,7 +519,6 @@ textarea.form-control {
 }
 
 @media (max-width: 768px) {
-    body { height: auto; overflow-y: auto; }
     .card-header {
         flex-direction: column;
         align-items: flex-start;
@@ -560,7 +560,7 @@ textarea.form-control {
     tbody tr { display: table-row; }
 }
 
-@media (max-width: 600px), (max-width: 1024px) and (orientation: portrait) {
+@media (max-width: 1024px) and (orientation: portrait), (max-width: 900px) {
     .table-container {
         border: none;
         overflow-x: visible;
@@ -625,10 +625,10 @@ textarea.form-control {
     }
 
     /* 状态列左侧色条在卡片模式下隐藏 */
-    tbody td.status-border-pending::before,
-    tbody td.status-border-tested::before,
-    tbody td.status-border-activated::before,
-    tbody td.status-border-deprecated::before {
+    tbody td.status-border-pending::after,
+    tbody td.status-border-tested::after,
+    tbody td.status-border-activated::after,
+    tbody td.status-border-deprecated::after {
         display: none;
     }
 
@@ -737,9 +737,10 @@ textarea.form-control {
 }
 
 #firmwareDetailModal .modal {
-    height: 520px;
-    max-height: 90vh;
-    overflow-y: hidden;
+    height: auto;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -779,4 +780,112 @@ textarea.form-control {
     background-color: #dc2626;
     color: white;
     border-color: #dc2626;
+}
+
+/* 卡片模式统一在窄屏与中尺寸竖屏启用，并由路由视图负责页面滚动。 */
+@media (max-width: 1024px) and (orientation: portrait), (max-width: 900px) {
+    .management-page {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
+    .management-page .card {
+        height: auto;
+        overflow: visible;
+    }
+
+    .management-page .card-header {
+        align-items: stretch;
+    }
+
+    .management-page .card-filters,
+    .management-page .card-actions {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .management-page .card-filters .form-group {
+        flex: 1 1 12rem;
+        min-width: 0;
+    }
+
+    .management-page .card-filters .form-control {
+        width: 100% !important;
+    }
+
+    .management-page .form-control,
+    .management-page .btn,
+    .management-page .pagination-btn,
+    .management-page .status-inline-select {
+        min-height: 44px;
+    }
+
+    .management-page .pagination-bar {
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .management-page tbody td {
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .management-page tbody td:not(.actions) {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .management-page .pagination-btn {
+        min-width: 44px;
+    }
+
+    .management-page .status-inline-select {
+        max-width: 65%;
+    }
+
+    .management-page .actions-inner {
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
+    }
+
+    .management-page .modal-overlay {
+        padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    }
+
+    .management-page + .modal-overlay .modal,
+    .modal-overlay .modal {
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100dvh - 2rem);
+    }
+
+    .modal-close {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .modal-body {
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    .form-scroll-box {
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 600px) {
+    .management-page .card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .management-page .pagination-bar {
+        width: 100%;
+        justify-content: center;
+    }
 }

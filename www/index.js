@@ -92,6 +92,7 @@ const ROUTES = {
 
 let activePage = null;
 let routeRequestId = 0;
+const mobileLayoutQuery = window.matchMedia('(max-width: 1200px)');
 
 // 更新页面标题
 function updatePageTitle(title) {
@@ -133,9 +134,14 @@ function setActiveNavigation(page) {
     updatePageTitle(getRouteTitle(page));
 }
 
+function setMobileMenuState(isOpen) {
+    document.getElementById('sidebar').classList.toggle('active', isOpen);
+    document.getElementById('mobileOverlay').classList.toggle('active', isOpen);
+    document.getElementById('mobileMenuBtn').setAttribute('aria-expanded', String(isOpen));
+}
+
 function closeMobileMenu() {
-    document.getElementById('sidebar').classList.remove('active');
-    document.getElementById('mobileOverlay').classList.remove('active');
+    setMobileMenuState(false);
 }
 
 function ensureStyle(href) {
@@ -188,7 +194,7 @@ async function loadRoute(page) {
     const requestId = ++routeRequestId;
     const view = document.getElementById('routeView');
 
-    if (activePage && activePage !== page) {
+    if (activePage) {
         const currentModule = window.XFMSPages[activePage];
         if (currentModule && typeof currentModule.destroy === 'function') {
             currentModule.destroy();
@@ -236,7 +242,7 @@ function navigateTo(page) {
     } else {
         window.location.hash = nextHash;
     }
-    if (window.innerWidth <= 1024) closeMobileMenu();
+    if (mobileLayoutQuery.matches) closeMobileMenu();
 }
 
 window.XFMSRouter = {
@@ -275,10 +281,20 @@ document.querySelectorAll('.nav-link').forEach(link => {
 
 // 移动端菜单
 document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
-document.getElementById('mobileOverlay').addEventListener('click', toggleMobileMenu);
+document.getElementById('mobileOverlay').addEventListener('click', closeMobileMenu);
 function toggleMobileMenu() {
-    document.getElementById('sidebar').classList.toggle('active');
-    document.getElementById('mobileOverlay').classList.toggle('active');
+    const isOpen = !document.getElementById('sidebar').classList.contains('active');
+    setMobileMenuState(isOpen);
+}
+
+function handleMobileLayoutChange() {
+    closeMobileMenu();
+}
+
+if (typeof mobileLayoutQuery.addEventListener === 'function') {
+    mobileLayoutQuery.addEventListener('change', handleMobileLayoutChange);
+} else {
+    mobileLayoutQuery.addListener(handleMobileLayoutChange);
 }
 
 function notifyActivePageLanguage(lang) {
